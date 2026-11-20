@@ -326,6 +326,12 @@
     return `<svg class="ico" viewBox="0 0 ${w} ${h}" width="${Math.round(alto * w / h)}" height="${alto}" shape-rendering="crispEdges" aria-hidden="true">${pixelMap(rows, pal, 1, 1, 1, "ico")}</svg>`;
   }
 
+  // Dibujo de pixel art genérico (filas de letras + paleta), con contorno: lo usan las medallas.
+  function pixelArte(rows, pal, alto = 16, cls = "ico") {
+    const w = rows[0].length + 2, h = rows.length + 2;
+    return `<svg class="${cls}" viewBox="0 0 ${w} ${h}" width="${Math.round(alto * w / h)}" height="${alto}" shape-rendering="crispEdges" aria-hidden="true">${pixelMap(rows, pal, 1, 1, 1, "")}</svg>`;
+  }
+
   // ───────────────────────── podio ─────────────────────────
   const DIGITS = {
     1: ["...##...", "..###...", ".####...", "...##...", "...##...", "...##...", "...##...", "...##...", "...##...", ".######.", ".######."],
@@ -463,5 +469,5 @@
   }
 
   animar();
-  global.Avatares = { cargar, avatar, spriteDe, mascotaDe, animaciones, posesDe, podioSVG, rachaSVG, nivelRacha, iconoSVG, POSES };
+  global.Avatares = { cargar, avatar, spriteDe, mascotaDe, animaciones, posesDe, podioSVG, rachaSVG, nivelRacha, iconoSVG, pixelArte, POSES };
 })(typeof window !== "undefined" ? window : globalThis);

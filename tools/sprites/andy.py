@@ -17,6 +17,8 @@ procesar(sys.argv[1], sys.argv[2],
         'festejo': dict(fila='festejo', titulo='festeja con un solo de guitarra', ms=380, pausa=1600, anclaje='talon'),
         'teclado': dict(fila='teclado', titulo='toca el teclado', ms=380, pausa=900),
         'derrota': dict(fila='derrota', titulo='queda tirado en el piso', ms=450, pausa=2000, anclaje='talon'),
+        'espera':  dict(fila='espera',  titulo='espera', ms=600, pausa=600),
+        'dormido': dict(fila='dormido', titulo='se queda dormido', ms=700, pausa=2400),
     },
     podio={'gana': 'festejo', 'otro': 'teclado', 'ultimo': 'derrota'},
     prev='salida/prev_andy.png')

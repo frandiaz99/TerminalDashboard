@@ -87,7 +87,10 @@ def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
         for i in range(k):
             if i in grupos or sizes[i] < 6: continue
             cx = (objs[i][1].start + objs[i][1].stop) / 2
-            f = min(figs, key=lambda f: 0 if objs[f][1].start <= cx <= objs[f][1].stop else min(abs(cx - objs[f][1].start), abs(cx - objs[f][1].stop)))
+            dist = lambda f: 0 if objs[f][1].start <= cx <= objs[f][1].stop else min(abs(cx - objs[f][1].start), abs(cx - objs[f][1].stop))
+            f = min(figs, key=dist)
+            if dist(f) > (objs[f][1].stop - objs[f][1].start):   # muy lejos de todo: resto de otra fila, se descarta
+                continue
             grupos[f].append(i)
         res = []
         for f in figs:
