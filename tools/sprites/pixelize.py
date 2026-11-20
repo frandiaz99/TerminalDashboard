@@ -7,6 +7,19 @@ def _pal(px, n):
     q = strip.quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
     return np.array(q.getpalette()[:3 * n]).reshape(-1, 3)
 
+def _unir_parecidos(pal, px, umbral=14):
+    """Une colores de la paleta casi idénticos (p. ej. varios negros con apenas otro tinte, que se ven
+    como puntitos). Se queda con el más usado de cada grupo."""
+    d = ((px[:, None, :].astype(int) - pal[None]) ** 2 * np.array([3, 4, 2])).sum(-1)
+    usos = np.bincount(d.argmin(1), minlength=len(pal))
+    orden = np.argsort(-usos)
+    final = []
+    for i in orden:
+        if all(np.sqrt(((pal[i] - pal[j]) ** 2).sum()) > umbral for j in final):
+            final.append(i)
+    return pal[final]
+
+
 def pixelize(folder, extra=(), grandes=32, acentos=24):
     files = sorted(glob.glob(f'{folder}/**/*.png', recursive=True)) + list(extra)
     ims = {f: np.array(Image.open(f).convert('RGBA')) for f in files}
@@ -29,6 +42,7 @@ def pixelize(folder, extra=(), grandes=32, acentos=24):
                 pal.append(np.array([np.median(sel[br <= lo], 0), np.median(sel[br >= hi], 0)]))
     pal = np.concatenate(pal)
     pal = np.unique(pal.round().astype(int), axis=0)
+    pal = _unir_parecidos(pal, px)
     for f, a in ims.items():
         # color más cercano de la paleta (distancia ponderada como la ve el ojo)
         c = a[..., :3].reshape(-1, 1, 3).astype(int)

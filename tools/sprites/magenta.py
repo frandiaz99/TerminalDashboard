@@ -7,18 +7,26 @@ Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su config
   igualar      filas cuyo 1.er cuadro es el personaje parado y que pueden venir dibujadas a otra
                escala: se igualan a la referencia
   poses        {"parado": (fila, cuadro), ...}
-  anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?}}  anclaje: "centro" (por defecto,
+  anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?, "mascota"?}}  mascota: True si la
+               mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "centro" (por defecto,
                centro del cuerpo) o "talon" (el pie de atrás queda fijo: para caídas hacia adelante)
   podio        {"gana", "otro", "ultimo"}
+  por_columnas filas donde cada cuadro tiene varias figuras grandes (ej. Nico + el dino): los cuadros
+               se separan por los espacios vacíos más anchos entre columnas
+  transformar  función que recibe la imagen (uint8) y la devuelve cambiada (ej. tono de piel)
+  mascota      (fila, cuadro, ruta): guarda ese cuadro como imagen de la mascota, en la misma escala
 """
 import os, json, numpy as np
 from PIL import Image
 from scipy import ndimage as nd
 
 
-def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=(), alto=None, prev=None):
+def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=(), alto=None, prev=None,
+             por_columnas=(), transformar=None, mascota=None):
     ALTO = alto or int(os.environ.get('ALTO', 104))
-    a = np.array(Image.open(src).convert('RGB')).astype(int)
+    a = np.array(Image.open(src).convert('RGB'))
+    if transformar: a = transformar(a)
+    a = a.astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     # fondo = magenta conectado con el borde (un líquido violeta encerrado en un frasco no se borra)
     mag = (r > 150) & (b > 150) & (g < 120) & (np.abs(r - b) < 70)
@@ -59,7 +67,29 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
             res.append((cuerpo, cuerpo | extras, y0))
         return res
 
-    F = {nombre: cuadros_de(y0, y1, n) for nombre, (y0, y1), n in zip(filas, franjas, cuadros)}
+    def cuadros_por_columnas(y0, y1, n):
+        """n cuadros separados por los n-1 espacios vacíos más anchos; todo lo de cada tramo es un cuadro."""
+        sub = fg[y0:y1]
+        col = sub.any(0)
+        tramos, en, x0 = [], False, 0
+        for x, hay in enumerate(col):
+            if hay and not en: en, x0 = True, x
+            if not hay and en: en = False; tramos.append((x0, x))
+        if en: tramos.append((x0, len(col)))
+        huecos = sorted(range(len(tramos) - 1), key=lambda i: -(tramos[i + 1][0] - tramos[i][1]))[:n - 1]
+        cortes = [0] + sorted(tramos[i][1] for i in huecos) + [len(col)]
+        lab, k = nd.label(sub, structure=np.ones((3, 3)))
+        sizes = nd.sum(sub, lab, range(1, k + 1))
+        grandes = np.isin(lab, [i + 1 for i in range(k) if sizes[i] >= 300])
+        limpio = nd.binary_erosion(grandes, iterations=2) | (sub & ~grandes)   # borde rosado fuera solo en lo grande
+        res = []
+        for c0, c1 in zip(cortes, cortes[1:]):
+            m = np.zeros_like(sub); m[:, c0:c1] = limpio[:, c0:c1]
+            res.append((m, m, y0))
+        return res
+
+    F = {nombre: (cuadros_por_columnas if nombre in por_columnas else cuadros_de)(y0, y1, n)
+         for nombre, (y0, y1), n in zip(filas, franjas, cuadros)}
 
     def alto_de(fila, i=0):
         yy = np.where(F[fila][i][0].any(1))[0]
@@ -102,10 +132,16 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
         cuerpo, todo, y0 = F[fila][i]
         recorte(todo, y0, fila)[0].save(os.path.join(out, pose + '.png'))
 
+    if mascota:
+        fila, i, ruta = mascota
+        cuerpo, todo, y0 = F[fila][i]
+        recorte(cuerpo, y0, fila)[0].save(ruta)        # solo la figura, sin los efectos de alrededor
+
     man = {'podio': podio, 'animaciones': {}}
     for nombre, d in anims.items():
         n = guardar_anim(d['fila'], nombre, d.get('anclaje', 'centro'))
         man['animaciones'][nombre] = {'titulo': d['titulo'], 'cuadros': n, 'ms': d['ms'], 'pausa': d['pausa'], 'alto': ALTO}
+        if d.get('mascota'): man['animaciones'][nombre]['mascota'] = True    # la mascota ya está en los cuadros
     lines = ',\n'.join(f'    {json.dumps(n) + ":":<12} {json.dumps(v, ensure_ascii=False)}' for n, v in man['animaciones'].items())
     open(os.path.join(out, 'animaciones.json'), 'w', encoding='utf-8').write(
         '{\n  "podio": ' + json.dumps(podio).replace('{', '{ ').replace('}', ' }') + ',\n  "animaciones": {\n' + lines + '\n  }\n}\n')

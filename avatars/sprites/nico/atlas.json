@@ -1,10 +1,10 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [902, 4, 44, 96], "caminando": [299, 132, 43, 76], "festejo": [4, 4, 68, 124], "sentado": [346, 132, 55, 76]},
+  "poses": {"parado": [796, 4, 44, 96], "festejo": [4, 4, 81, 105], "sentado": [544, 113, 55, 79]},
   "podio": {"gana": "trofeo", "otro": "dino", "ultimo": "derrota"},
   "animaciones": {
-    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 114, "h": 106, "cuadros": [[76, 4], [194, 4], [312, 4], [430, 4], [548, 4], [666, 4], [784, 4]]},
-    "dino": {"titulo": "juega con el dino", "ms": 700, "pausa": 1600, "alto": 96, "mascota": true, "w": 118, "h": 60, "cuadros": [[405, 132], [527, 132], [649, 132], [771, 132]]},
-    "derrota": {"titulo": "queda tirado en el piso", "ms": 500, "pausa": 2000, "alto": 96, "w": 55, "h": 81, "cuadros": [[950, 4], [4, 132], [63, 132], [122, 132], [181, 132], [240, 132]]}
+    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 97, "h": 105, "cuadros": [[89, 4], [190, 4], [291, 4], [392, 4], [493, 4], [594, 4], [695, 4]]},
+    "dino": {"titulo": "juega a la pelota con el dino", "ms": 450, "pausa": 1600, "alto": 96, "mascota": true, "w": 109, "h": 76, "cuadros": [[603, 113], [716, 113], [829, 113], [4, 213], [117, 213], [230, 213]]},
+    "derrota": {"titulo": "queda tirado en el piso", "ms": 450, "pausa": 2000, "alto": 96, "w": 104, "h": 96, "cuadros": [[844, 4], [4, 113], [112, 113], [220, 113], [328, 113], [436, 113]]}
   }
 }
