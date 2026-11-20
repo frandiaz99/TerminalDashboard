@@ -1,10 +1,10 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [664, 137, 47, 94], "caminando": [715, 137, 47, 91], "festejo": [4, 4, 73, 129], "sentado": [766, 137, 57, 82]},
-  "podio": {"gana": "trofeo", "otro": "piano", "ultimo": "piso"},
+  "poses": {"parado": [418, 241, 52, 96], "festejo": [658, 4, 100, 106], "sentado": [474, 241, 69, 79]},
+  "podio": {"gana": "trofeo", "otro": "teclado", "ultimo": "derrota"},
   "animaciones": {
-    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 70, "h": 111, "cuadros": [[465, 4], [539, 4], [613, 4], [687, 4], [761, 4], [835, 4], [909, 4]]},
-    "piano": {"titulo": "toca el teclado", "ms": 380, "pausa": 900, "alto": 96, "w": 60, "h": 113, "cuadros": [[81, 4], [145, 4], [209, 4], [273, 4], [337, 4], [401, 4]]},
-    "piso": {"titulo": "queda tirado en el piso", "ms": 450, "pausa": 1800, "alto": 96, "w": 106, "h": 95, "cuadros": [[4, 137], [114, 137], [224, 137], [334, 137], [444, 137], [554, 137]]}
+    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 111, "h": 106, "cuadros": [[762, 4], [877, 4], [4, 131], [119, 131], [234, 131], [349, 131], [464, 131]]},
+    "teclado": {"titulo": "toca el teclado", "ms": 380, "pausa": 900, "alto": 96, "w": 105, "h": 123, "cuadros": [[4, 4], [113, 4], [222, 4], [331, 4], [440, 4], [549, 4]]},
+    "derrota": {"titulo": "queda tirado en el piso", "ms": 450, "pausa": 2000, "alto": 96, "w": 134, "h": 101, "cuadros": [[579, 131], [717, 131], [855, 131], [4, 241], [142, 241], [280, 241]]}
   }
 }

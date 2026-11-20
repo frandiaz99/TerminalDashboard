@@ -7,7 +7,7 @@
 set -e
 export ALTO=96          # alto en píxeles reales del personaje parado
 mkdir -p salida
-PREVIEW=salida/prev_andy.png python andy.py hojas/andy.png salida/andy
+python andy.py hojas/andy.png salida/andy
 python dante.py hojas/dante.png salida/dante
 python dante_moto.py hojas/dante_moto.png salida/dante
 python fran.py  hojas/fran.png  salida/fran

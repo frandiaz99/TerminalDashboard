@@ -172,6 +172,8 @@
   // Animaciones: avatars/sprites/<id>/animaciones.json + una carpeta por animación con 1.png, 2.png…
   const ANIMS = new Map();         // id → { podio: { gana, otro }, anims: { nombre → {...} } }
   function animDe(id, nombre) { const s = ANIMS.get(id); return s && nombre && s.anims[nombre] || null; }
+  // poses que el personaje tiene de verdad (sin contar las que se reemplazan por "parado")
+  function posesDe(nombre) { const id = spriteDe(nombre); return POSES.filter(p => META.has(id + "/" + p)); }
   function animaciones(nombre) { const s = ANIMS.get(spriteDe(nombre)); return s ? Object.values(s.anims).map(a => ({ nombre: a.nombre, titulo: a.titulo })) : []; }
 
   // Un solo reloj para todas las animaciones de la página: cambia el cuadro de cada
@@ -461,5 +463,5 @@
   }
 
   animar();
-  global.Avatares = { cargar, avatar, spriteDe, mascotaDe, animaciones, podioSVG, rachaSVG, nivelRacha, iconoSVG, POSES };
+  global.Avatares = { cargar, avatar, spriteDe, mascotaDe, animaciones, posesDe, podioSVG, rachaSVG, nivelRacha, iconoSVG, POSES };
 })(typeof window !== "undefined" ? window : globalThis);

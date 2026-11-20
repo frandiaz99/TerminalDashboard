@@ -179,13 +179,14 @@ function renderAvatarArea(st) {
   const anims = AV.animaciones(nombre);
   const items = [
     ...anims.map(a => ({ key: "anim:" + a.nombre, titulo: a.titulo, tipo: "animación", html: alto => AV.avatar(nombre, {}, { anim: a.nombre, alto }) })),
-    ...AV.POSES.map(p => ({ key: "pose:" + p, titulo: p, tipo: "pose", html: alto => AV.avatar(nombre, {}, { pose: p, alto }) })),
+    ...AV.posesDe(nombre).map(p => ({ key: "pose:" + p, titulo: p, tipo: "pose", html: alto => AV.avatar(nombre, {}, { pose: p, alto }) })),
   ];
   if (!elegido || !items.some(i => i.key === elegido)) elegido = items[0].key;
   const cur = items.find(i => i.key === elegido);
   $("stage").innerHTML = `<span class="cap">${esc(cur.titulo)}</span>` + cur.html(190);
   $("cards").innerHTML = items.map(i => `<button class="card" data-k="${esc(i.key)}" aria-pressed="${i.key === elegido}"><span class="pic">${i.html(96)}</span><span class="lbl">${esc(i.titulo)}<small>${i.tipo}</small></span></button>`).join("");
-  $("anim-count").textContent = anims.length ? `${anims.length} animaciones · ${AV.POSES.length} poses` : `${AV.POSES.length} poses · este personaje todavía no tiene animaciones`;
+  const np = AV.posesDe(nombre).length;
+  $("anim-count").textContent = anims.length ? `${anims.length} animaciones · ${np} poses` : `${np} poses · este personaje todavía no tiene animaciones`;
 }
 
 function render(scores, players) {

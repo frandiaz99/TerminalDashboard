@@ -1,0 +1,124 @@
+"""Procesa una hoja de sprites con fondo magenta (#FF00FF) y una animación por fila.
+
+Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su configuración:
+  filas        nombres de las filas, de arriba hacia abajo
+  cuadros      cuántos cuadros tiene cada fila
+  referencia   (fila, cuadro) del personaje parado: su alto pasa a ser ALTO
+  igualar      filas cuyo 1.er cuadro es el personaje parado y que pueden venir dibujadas a otra
+               escala: se igualan a la referencia
+  poses        {"parado": (fila, cuadro), ...}
+  anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?}}  anclaje: "centro" (por defecto,
+               centro del cuerpo) o "talon" (el pie de atrás queda fijo: para caídas hacia adelante)
+  podio        {"gana", "otro", "ultimo"}
+"""
+import os, json, numpy as np
+from PIL import Image
+from scipy import ndimage as nd
+
+
+def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=(), alto=None, prev=None):
+    ALTO = alto or int(os.environ.get('ALTO', 104))
+    a = np.array(Image.open(src).convert('RGB')).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    # fondo = magenta conectado con el borde (un líquido violeta encerrado en un frasco no se borra)
+    mag = (r > 150) & (b > 150) & (g < 120) & (np.abs(r - b) < 70)
+    lab, _ = nd.label(mag)
+    borde = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    fondo = np.isin(lab, list(borde))
+    # huecos de fondo encerrados (dentro de humo, anillos, entre brazos): magenta puro, rojo ≈ azul y altos
+    fondo |= (g < 30) & (r > 220) & (b > 215) & (np.abs(r - b) < 25)
+    fg = nd.binary_opening(~fondo, iterations=1)
+
+    # filas: franjas horizontales con contenido
+    franjas, en, y0 = [], False, 0
+    for y, hay in enumerate(fg.any(1)):
+        if hay and not en: en, y0 = True, y
+        if not hay and en:
+            en = False
+            if y - y0 > 40: franjas.append((y0, y))
+    if en: franjas.append((y0, len(fg)))
+    assert len(franjas) == len(filas), f'se esperaban {len(filas)} filas y hay {len(franjas)}: {franjas}'
+
+    def cuadros_de(y0, y1, n):
+        """Las n figuras más grandes de la fila, con sus efectos (chispas, humo, zzz) asignados a la más cercana."""
+        sub = fg[y0:y1]
+        lab, k = nd.label(sub, structure=np.ones((3, 3)))
+        objs = nd.find_objects(lab)
+        sizes = nd.sum(sub, lab, range(1, k + 1))
+        figs = sorted(sorted(range(k), key=lambda i: -sizes[i])[:n], key=lambda i: objs[i][1].start)
+        grupos = {f: [f] for f in figs}
+        for i in range(k):
+            if i in grupos or sizes[i] < 6: continue
+            cx = (objs[i][1].start + objs[i][1].stop) / 2
+            f = min(figs, key=lambda f: 0 if objs[f][1].start <= cx <= objs[f][1].stop else min(abs(cx - objs[f][1].start), abs(cx - objs[f][1].stop)))
+            grupos[f].append(i)
+        res = []
+        for f in figs:
+            cuerpo = nd.binary_erosion(lab == f + 1, iterations=2)          # sin el borde rosado
+            extras = np.isin(lab, [i + 1 for i in grupos[f] if i != f])     # efectos finitos: enteros
+            res.append((cuerpo, cuerpo | extras, y0))
+        return res
+
+    F = {nombre: cuadros_de(y0, y1, n) for nombre, (y0, y1), n in zip(filas, franjas, cuadros)}
+
+    def alto_de(fila, i=0):
+        yy = np.where(F[fila][i][0].any(1))[0]
+        return yy.max() - yy.min() + 1
+
+    ref = alto_de(*referencia)
+    k = ALTO / ref
+    escala = {fila: ref / alto_de(fila) for fila in igualar}
+
+    def recorte(mask, y0, fila):
+        kk = k * escala.get(fila, 1)
+        ys, xs = np.where(mask)
+        t, bt, l, rr = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+        rgba = np.dstack([a[y0 + t:y0 + bt, l:rr].astype(np.uint8), (mask[t:bt, l:rr] * 255).astype(np.uint8)])
+        im = Image.fromarray(rgba, 'RGBA')
+        im = im.convert('RGBa').resize((max(1, round(im.width * kk)), max(1, round(im.height * kk))), Image.LANCZOS).convert('RGBA')
+        return im, l, kk
+
+    def guardar_anim(fila, carpeta, anclaje='centro'):
+        """Cuadros alineados por el centro del cuerpo (o por el pie de atrás), con el piso abajo."""
+        ims, anc = [], []
+        for cuerpo, todo, y0 in F[fila]:
+            im, l, kk = recorte(todo, y0, fila)
+            ys, xs = np.where(cuerpo)
+            if anclaje == 'talon':
+                x = xs[ys >= ys.max() - (ys.max() - ys.min()) * .1].min()
+            else:
+                x = xs.mean()
+            ims.append(im); anc.append((x - l) * kk)
+        L = max(anc); R = max(im.width - cx for im, cx in zip(ims, anc))
+        H = max(im.height for im in ims); W = int(np.ceil(L + R))
+        os.makedirs(os.path.join(out, carpeta), exist_ok=True)
+        for j, (im, cx) in enumerate(zip(ims, anc)):
+            c = Image.new('RGBA', (W, H)); c.alpha_composite(im, (int(round(L - cx)), H - im.height))
+            c.save(os.path.join(out, carpeta, f'{j + 1}.png'))
+        return len(ims)
+
+    os.makedirs(out, exist_ok=True)
+    for pose, (fila, i) in poses.items():
+        cuerpo, todo, y0 = F[fila][i]
+        recorte(todo, y0, fila)[0].save(os.path.join(out, pose + '.png'))
+
+    man = {'podio': podio, 'animaciones': {}}
+    for nombre, d in anims.items():
+        n = guardar_anim(d['fila'], nombre, d.get('anclaje', 'centro'))
+        man['animaciones'][nombre] = {'titulo': d['titulo'], 'cuadros': n, 'ms': d['ms'], 'pausa': d['pausa'], 'alto': ALTO}
+    lines = ',\n'.join(f'    {json.dumps(n) + ":":<12} {json.dumps(v, ensure_ascii=False)}' for n, v in man['animaciones'].items())
+    open(os.path.join(out, 'animaciones.json'), 'w', encoding='utf-8').write(
+        '{\n  "podio": ' + json.dumps(podio).replace('{', '{ ').replace('}', ' }') + ',\n  "animaciones": {\n' + lines + '\n  }\n}\n')
+
+    if prev:   # vista previa: poses y animaciones, una fila cada una
+        filas_prev = [[Image.open(os.path.join(out, p + '.png')) for p in poses]]
+        for nombre, v in man['animaciones'].items():
+            filas_prev.append([Image.open(os.path.join(out, nombre, f'{j + 1}.png')) for j in range(v['cuadros'])])
+        W = max(sum(i.width + 8 for i in f) for f in filas_prev); H = sum(max(i.height for i in f) + 8 for f in filas_prev)
+        c = Image.new('RGBA', (W, H), (22, 26, 32, 255)); y = 0
+        for f in filas_prev:
+            h = max(i.height for i in f); x = 0
+            for i in f: c.alpha_composite(i, (x, y + h - i.height)); x += i.width + 8
+            y += h + 8
+        c.resize((W * 2, H * 2), Image.NEAREST).save(prev)
+    print(f'{os.path.basename(out)}: escala {k:.3f}')
