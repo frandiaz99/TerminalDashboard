@@ -47,7 +47,8 @@
 
   function medir(img) {
     const w = img.naturalWidth, h = img.naturalHeight;
-    const m = { w, h, top: 0, cx: w / 2, u: Math.max(2, Math.round(h / 43)), ok: false };
+    // u: tamaño de un píxel del dibujo; con sprites en resolución real (≈48 px de alto) es 1
+    const m = { w, h, top: 0, cx: w / 2, u: Math.max(1, Math.round(h / 43)), ok: false };
     try {
       const c = document.createElement("canvas");
       c.width = w; c.height = h;

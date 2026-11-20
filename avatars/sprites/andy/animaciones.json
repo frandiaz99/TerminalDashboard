@@ -1,12 +1,12 @@
 {
   "podio": { "gana": "trofeo", "otro": "piano", "ultimo": "piso" },
   "animaciones": {
-    "trofeo":  {"titulo": "levanta la copa", "cuadros": 7, "ms": 420, "pausa": 1400, "alto": 104},
-    "piano":   {"titulo": "toca el teclado", "cuadros": 6, "ms": 380, "pausa": 900, "alto": 104},
-    "caminar": {"titulo": "camina", "cuadros": 4, "ms": 170, "alto": 104},
-    "mate":    {"titulo": "toma mate", "cuadros": 9, "ms": 480, "pausa": 1200, "alto": 104},
-    "piso":    {"titulo": "queda tirado en el piso", "cuadros": 6, "ms": 450, "pausa": 1800, "alto": 104},
-    "posa":    {"titulo": "posa", "cuadros": 9, "ms": 1100, "alto": 104},
-    "compu":   {"titulo": "usa la compu", "cuadros": 1, "ms": 700, "alto": 104}
+    "trofeo":  {"titulo": "levanta la copa", "cuadros": 7, "ms": 420, "pausa": 1400, "alto": 48},
+    "piano":   {"titulo": "toca el teclado", "cuadros": 6, "ms": 380, "pausa": 900, "alto": 48},
+    "caminar": {"titulo": "camina", "cuadros": 4, "ms": 170, "alto": 48},
+    "mate":    {"titulo": "toma mate", "cuadros": 9, "ms": 480, "pausa": 1200, "alto": 48},
+    "piso":    {"titulo": "queda tirado en el piso", "cuadros": 6, "ms": 450, "pausa": 1800, "alto": 48},
+    "posa":    {"titulo": "posa", "cuadros": 9, "ms": 1100, "alto": 48},
+    "compu":   {"titulo": "usa la compu", "cuadros": 1, "ms": 700, "alto": 48}
   }
 }

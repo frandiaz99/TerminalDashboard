@@ -33,7 +33,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Cambiá este número cada vez que actualices imágenes, así todos ven las nuevas sin limpiar la caché.
-window.AVATARES_VERSION = "4";
+window.AVATARES_VERSION = "5";
 
 // Carpetas disponibles. Los jugadores que no figuran en AVATARES reciben una de estas,
 // siempre la misma para el mismo nombre.

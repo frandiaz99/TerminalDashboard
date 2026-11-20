@@ -74,7 +74,7 @@
   /* personajes */
   .avt { position: relative; display: inline-block; flex: none; }
   .avt img, .avt svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-  .avt img, .podio-svg image { filter: drop-shadow(0 0 1px rgba(214, 219, 226, .55)); }
+  .avt img, .podio-svg image { filter: drop-shadow(0 0 1px rgba(214, 219, 226, .55)); image-rendering: pixelated; }
   .avt-pj { position: absolute; left: 0; top: 0; }
   .avt img.mascota { image-rendering: pixelated; animation: hop 1.8s steps(2) infinite; }
   @keyframes hop { 50% { transform: translateY(-8%); } }
