@@ -34,11 +34,14 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
     F, IMG = {}, {}
     _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG)
     for ex in extras:
-        _hoja(ex['src'], ex['filas'], ex['cuadros'], ex.get('por_columnas', ()), transformar, F, IMG)
+        _hoja(ex['src'], ex['filas'], ex['cuadros'], ex.get('por_columnas', ()), transformar, F, IMG,
+              ex.get('grilla', ()), ex.get('tapar', ()))
     _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, mascota, sin_tinte)
 
 
-def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
+def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG, grilla=(), tapar=()):
+    """grilla: filas con cuadros a distancias parejas (se cortan cerca de cada 1/n del ancho, aunque se toquen).
+    tapar: rectángulos (x0, y0, x1, y1) de la hoja que se borran (p. ej. fuegos artificiales que cruzan cuadros)."""
     a = np.array(Image.open(src).convert('RGB'))
     if transformar: a = transformar(a)
     a = a.astype(int)
@@ -50,6 +53,7 @@ def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
     fondo = np.isin(lab, list(borde))
     # huecos de fondo encerrados (dentro de humo, anillos, entre brazos): magenta puro, rojo ≈ azul y altos
     fondo |= (g < 30) & (r > 220) & (b > 215) & (np.abs(r - b) < 25)
+    for x0, y0, x1, y1 in tapar: fondo[y0:y1, x0:x1] = True
     fg = nd.binary_opening(~fondo, iterations=1)
 
     # filas: franjas horizontales con contenido
@@ -100,6 +104,52 @@ def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
             res.append((cuerpo, cuerpo | extras, y0))
         return res
 
+    def cuadros_grilla(y0, y1, n):
+        """n cuadros: se corta en cada espacio vacío; los tramos angostos (chispas, notas, la mascota suelta)
+        se unen al vecino más cercano y los demasiado anchos (dos cuadros unidos por humo) se parten por su
+        columna más vacía. Cada figura va entera al cuadro donde tiene la mayor parte."""
+        sub = fg[y0:y1]
+        cuenta = sub.sum(0)
+        tramos, en = [], False
+        for x, c in enumerate(cuenta):
+            if c and not en: en, t0 = True, x
+            if not c and en: en = False; tramos.append([t0, x])
+        if en: tramos.append([t0, len(cuenta)])
+        angosto = lambda: [i for i in range(len(tramos)) if tramos[i][1] - tramos[i][0] < 12]
+        while len(tramos) != n or (angosto() and len(tramos) > 1):
+            if len(tramos) > n or angosto():
+                i = angosto()[0] if angosto() else min(range(len(tramos)), key=lambda i: tramos[i][1] - tramos[i][0])
+                vec = [j for j in (i - 1, i + 1) if 0 <= j < len(tramos)]
+                j = min(vec, key=lambda j: tramos[i][0] - tramos[j][1] if j < i else tramos[j][0] - tramos[i][1])
+                a, b = sorted((i, j))
+                tramos[a:b + 1] = [[tramos[a][0], tramos[b][1]]]
+            else:
+                i = max(range(len(tramos)), key=lambda i: tramos[i][1] - tramos[i][0])
+                t0, t1 = tramos[i]; w = t1 - t0
+                c = t0 + int(w * .3) + int(np.argmin(cuenta[t0 + int(w * .3):t0 + int(w * .7)]))
+                tramos[i:i + 1] = [[t0, c], [c + 1, t1]]
+        cortes = [0] + [(tramos[i][1] + tramos[i + 1][0]) // 2 for i in range(n - 1)] + [sub.shape[1]]
+        return _por_cortes(sub, cortes, y0)
+
+    def _por_cortes(sub, cortes, y0):
+        lab, k = nd.label(sub, structure=np.ones((3, 3)))
+        sizes = nd.sum(sub, lab, range(1, k + 1))
+        grandes = np.isin(lab, [i + 1 for i in range(k) if sizes[i] >= 300])
+        limpio = nd.binary_erosion(grandes, iterations=2) | (sub & ~grandes)
+        seg = np.searchsorted(cortes, np.arange(sub.shape[1]), side='right') - 1    # cuadro de cada columna
+        dueño = np.full(k + 1, -1)
+        for i, o in enumerate(nd.find_objects(lab)):
+            ys, xs = np.where(lab[o] == i + 1)
+            cuantos = np.bincount(seg[xs + o[1].start], minlength=len(cortes))
+            if cuantos.max() >= .7 * len(xs) and len(xs) - cuantos.max() < 500: dueño[i + 1] = int(cuantos.argmax())
+        res = []
+        for j, (c0, c1) in enumerate(zip(cortes, cortes[1:])):
+            m = np.isin(lab, np.where(dueño == j)[0]) & limpio
+            sueltos = (dueño[lab] == -1) & limpio
+            m[:, c0:c1] |= sueltos[:, c0:c1]
+            res.append((m, m, y0))
+        return res
+
     def cuadros_por_columnas(y0, y1, n):
         """n cuadros separados por los n-1 espacios vacíos más anchos; todo lo de cada tramo es un cuadro."""
         sub = fg[y0:y1]
@@ -129,7 +179,7 @@ def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
         return res
 
     for nombre, (y0, y1), n in zip(filas, franjas, cuadros):
-        F[nombre] = (cuadros_por_columnas if nombre in por_columnas else cuadros_de)(y0, y1, n)
+        F[nombre] = (cuadros_grilla if nombre in grilla else cuadros_por_columnas if nombre in por_columnas else cuadros_de)(y0, y1, n)
         IMG[nombre] = a
 
 
@@ -159,10 +209,11 @@ def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, m
         im = im.convert('RGBa').resize((max(1, round(im.width * kk)), max(1, round(im.height * kk))), Image.LANCZOS).convert('RGBA')
         return im, l, kk
 
-    def guardar_anim(fila, carpeta, anclaje='centro'):
-        """Cuadros alineados por el centro del cuerpo (o por el pie de atrás), con el piso abajo."""
+    def guardar_anim(fila, carpeta, anclaje='centro', hasta=None):
+        """Cuadros alineados por el centro del cuerpo (o por el pie de atrás), con el piso abajo.
+        hasta: usar solo los primeros cuadros de la fila (si la hoja trae uno de más)."""
         ims, anc = [], []
-        for cuerpo, todo, y0 in F[fila]:
+        for cuerpo, todo, y0 in F[fila][:hasta]:
             im, l, kk = recorte(todo, y0, fila)
             ys, xs = np.where(cuerpo)
             if anclaje == 'talon':
@@ -200,7 +251,7 @@ def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, m
 
     man = {'podio': podio, 'animaciones': {}}
     for nombre, d in anims.items():
-        n = guardar_anim(d['fila'], nombre, d.get('anclaje', 'centro'))
+        n = guardar_anim(d['fila'], nombre, d.get('anclaje', 'centro'), d.get('hasta'))
         man['animaciones'][nombre] = {'titulo': d['titulo'], 'cuadros': n, 'ms': d['ms'], 'pausa': d['pausa'], 'alto': ALTO}
         # bucle "idayvuelta" (por defecto): llega al último cuadro, se detiene ahí y vuelve al primero,
         # así la animación termina como empieza. "natural": la secuencia ya termina como empieza.
