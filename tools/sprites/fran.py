@@ -31,10 +31,8 @@ if __name__ == '__main__' and len(sys.argv) >= 3:
             'correr':    dict(titulo='corre', frames=r('corrida', 8), ms=100),
             'saltar':    dict(titulo='salta', frames=r('saltar', 3), ms=260, pausa=600),
             'caparazon': dict(titulo='juega con el caparazón', frames=r('caparazon', 8), ms=300),
-            'powerup':   dict(titulo='agarra los power-ups', frames=r('powerups', 7), ms=450, pausa=1200),
             'tubo':      dict(titulo='entra y sale del tubo', frames=r('tubos', 6), ms=400, pausa=900),
             'espera':    dict(titulo='espera', frames=r('idle', 4), ms=600),
-            'posa':      dict(titulo='posa', frames=r('final', 8), ms=1100),
         },
         podio={'gana': 'trofeo', 'otro': 'bloques', 'ultimo': 'derrota'},
         preview='salida/prev_fran.png')

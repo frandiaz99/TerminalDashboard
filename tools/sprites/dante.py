@@ -29,7 +29,6 @@ if __name__ == '__main__':
             'leer':    dict(titulo='lee el mapa', frames=r('uso', 2, 6), ms=900),
             'compu':   dict(titulo='usa la compu', frames=r('uso', 2, 8), ms=700),
             'espera':  dict(titulo='espera', frames=r('idle', 4), ms=600),
-            'posa':    dict(titulo='posa', frames=r('final', 8), ms=1100),
         },
         podio={'gana': 'trofeo', 'otro': 'moto'},
         preview='salida/prev_dante.png')

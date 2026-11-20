@@ -43,10 +43,8 @@ if __name__ == '__main__' and len(sys.argv) >= 3:
             'correr':  dict(titulo='corre', frames=r('carrera', 8), ms=100),
             'saltar':  dict(titulo='salta', frames=r('salto', 9), ms=150, pausa=600),
             'caer':    dict(titulo='cae y aterriza', frames=r('caida', 6), ms=180, pausa=900),
-            'objetos': dict(titulo='usa sus cosas', frames=r('objeto', 5), ms=1200),
             'espera':  dict(titulo='espera', frames=r('idle', 4), ms=600),
             'girar':   dict(titulo='gira', frames=r('girar', 5), ms=400),
-            'posa':    dict(titulo='posa', frames=r('final', 9), ms=1100),
         },
         podio={'gana': 'trofeo', 'otro': 'dino', 'ultimo': 'derrota'},
         preview='salida/prev_nico.png')
