@@ -1,12 +1,12 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [349, 113, 70, 96], "caminando": [423, 113, 62, 96], "festejo": [4, 4, 99, 105], "sentado": [258, 313, 76, 91]},
-  "podio": {"gana": "invento", "otro": "mezcla", "ultimo": "explosion"},
+  "poses": {"parado": [576, 376, 70, 96], "caminando": [650, 376, 62, 96], "festejo": [224, 252, 99, 105], "sentado": [853, 485, 76, 91]},
+  "podio": {"gana": "invento", "otro": "hulk", "ultimo": "explosion"},
   "animaciones": {
-    "invento": {"titulo": "su invento funciona", "ms": 330, "pausa": 1400, "pausaEn": 6, "alto": 96, "w": 108, "h": 105, "cuadros": [[107, 4], [219, 4], [331, 4], [443, 4], [555, 4], [667, 4], [779, 4], [667, 4], [555, 4], [443, 4], [331, 4], [219, 4]]},
-    "mezcla": {"titulo": "mezcla dos frascos", "ms": 380, "pausa": 1200, "pausaEn": 5, "alto": 96, "w": 98, "h": 95, "cuadros": [[837, 113], [4, 214], [106, 214], [208, 214], [310, 214], [412, 214], [310, 214], [208, 214], [106, 214], [4, 214]]},
-    "explosion": {"titulo": "le explota el experimento", "ms": 420, "pausa": 2000, "pausaEn": 5, "alto": 96, "w": 123, "h": 95, "cuadros": [[514, 214], [641, 214], [768, 214], [895, 214], [4, 313], [131, 313], [4, 313], [895, 214], [768, 214], [641, 214]]},
-    "espera": {"titulo": "espera", "ms": 600, "pausa": 600, "alto": 96, "w": 83, "h": 96, "cuadros": [[489, 113], [576, 113], [663, 113], [750, 113]]},
-    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "pausaEn": 3, "alto": 96, "w": 111, "h": 97, "cuadros": [[891, 4], [4, 113], [119, 113], [234, 113], [119, 113], [4, 113]]}
+    "invento": {"titulo": "su invento funciona", "ms": 330, "pausa": 1400, "pausaEn": 6, "alto": 96, "w": 108, "h": 105, "cuadros": [[327, 252], [439, 252], [551, 252], [663, 252], [775, 252], [887, 252], [4, 376], [887, 252], [775, 252], [663, 252], [551, 252], [439, 252]]},
+    "hulk": {"titulo": "se toma la mezcla y se vuelve Hulk", "ms": 200, "pausa": 1500, "pausaEn": 13, "alto": 96, "w": 106, "h": 120, "cuadros": [[4, 4], [114, 4], [224, 4], [334, 4], [444, 4], [554, 4], [664, 4], [774, 4], [884, 4], [4, 128], [114, 128], [224, 128], [334, 128], [444, 128], [554, 128], [664, 128], [774, 128], [884, 128], [4, 252], [114, 252]]},
+    "explosion": {"titulo": "le explota el experimento", "ms": 420, "pausa": 2000, "pausaEn": 5, "alto": 96, "w": 123, "h": 95, "cuadros": [[91, 485], [218, 485], [345, 485], [472, 485], [599, 485], [726, 485], [599, 485], [472, 485], [345, 485], [218, 485]]},
+    "espera": {"titulo": "espera", "ms": 600, "pausa": 600, "alto": 96, "w": 83, "h": 96, "cuadros": [[716, 376], [803, 376], [890, 376], [4, 485]]},
+    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "pausaEn": 3, "alto": 96, "w": 111, "h": 97, "cuadros": [[116, 376], [231, 376], [346, 376], [461, 376], [346, 376], [231, 376]]}
   }
 }

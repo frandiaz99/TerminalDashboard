@@ -20,8 +20,8 @@ Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su config
                sus filas se suman a las de la hoja principal (con la misma escala y transformación)
   igualar      también puede ser {fila: fila_de_referencia} para escalar una fila según otra
   poses        un 3.er elemento "solo" toma solo la figura principal (sin efectos ni mascota)
-  sin_tinte    True si el personaje no tiene nada magenta/rosa: los píxeles teñidos por el fondo
-               (rayos de las ruedas, bordes claros) pasan a gris
+  sin_tinte    True (o lista de filas) si no hay nada magenta/rosa: los píxeles teñidos por el fondo
+               (rayos de las ruedas, bordes claros, chispas finitas) pasan a gris
 """
 import os, json, numpy as np
 from PIL import Image
@@ -109,6 +109,13 @@ def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
             if hay and not en: en, x0 = True, x
             if not hay and en: en = False; tramos.append((x0, x))
         if en: tramos.append((x0, len(col)))
+        # si dos cuadros se tocan, se corta el tramo más ancho por su columna con menos contenido
+        cuenta = sub.sum(0)
+        while len(tramos) < n:
+            i = max(range(len(tramos)), key=lambda i: tramos[i][1] - tramos[i][0])
+            a0, a1 = tramos[i]; w = a1 - a0
+            c = a0 + int(w * .3) + int(np.argmin(cuenta[a0 + int(w * .3):a0 + int(w * .7)]))
+            tramos[i:i + 1] = [(a0, c), (c + 1, a1)]
         huecos = sorted(range(len(tramos) - 1), key=lambda i: -(tramos[i + 1][0] - tramos[i][1]))[:n - 1]
         cortes = [0] + sorted(tramos[i][1] for i in huecos) + [len(col)]
         lab, k = nd.label(sub, structure=np.ones((3, 3)))
@@ -142,7 +149,7 @@ def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, m
         ys, xs = np.where(mask)
         t, bt, l, rr = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
         rgb = IMG[fila][y0 + t:y0 + bt, l:rr].copy()
-        if sin_tinte:
+        if sin_tinte is True or (sin_tinte and fila in sin_tinte):
             R, G, B = rgb[..., 0], rgb[..., 1], rgb[..., 2]
             t_ = (R - G > 25) & (B - G > 25) & (np.abs(R - B) < 70)
             gris = (R * .3 + G * .59 + B * .11)[t_]
@@ -200,6 +207,8 @@ def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, m
         if d.get('bucle', 'idayvuelta') == 'idayvuelta' and n > 2:
             man['animaciones'][nombre]['orden'] = list(range(n)) + list(range(n - 2, 0, -1))
             man['animaciones'][nombre]['pausaEn'] = n - 1
+        elif 'pausaEn' in d:                   # bucle natural con la pausa en un cuadro elegido (el clímax)
+            man['animaciones'][nombre]['pausaEn'] = d['pausaEn']
         if d.get('mascota'): man['animaciones'][nombre]['mascota'] = True    # la mascota ya está en los cuadros
     lines = ',\n'.join(f'    {json.dumps(n) + ":":<12} {json.dumps(v, ensure_ascii=False)}' for n, v in man['animaciones'].items())
     open(os.path.join(out, 'animaciones.json'), 'w', encoding='utf-8').write(
