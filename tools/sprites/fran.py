@@ -27,12 +27,6 @@ if __name__ == '__main__' and len(sys.argv) >= 3:
             'trofeo':    dict(titulo='levanta la copa', frames=r('trofeo', 6), ms=420, pausa=1400),
             'bloques':   dict(titulo='golpea el bloque', frames=r('bloques', 5), ms=330, pausa=1100, anclaje='bloque', suelo=0),
             'derrota':   dict(titulo='queda tirado en el piso', frames=r('derrota', 4), ms=550, pausa=2000, anclaje='talon'),
-            'caminar':   dict(titulo='camina', frames=r('caminata', 7), ms=140),
-            'correr':    dict(titulo='corre', frames=r('corrida', 8), ms=100),
-            'saltar':    dict(titulo='salta', frames=r('saltar', 3), ms=260, pausa=600),
-            'caparazon': dict(titulo='juega con el caparazón', frames=r('caparazon', 8), ms=300),
-            'tubo':      dict(titulo='entra y sale del tubo', frames=r('tubos', 6), ms=400, pausa=900),
-            'espera':    dict(titulo='espera', frames=r('idle', 4), ms=600),
         },
         podio={'gana': 'trofeo', 'otro': 'bloques', 'ultimo': 'derrota'},
         preview='salida/prev_fran.png')

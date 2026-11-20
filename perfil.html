@@ -194,7 +194,7 @@ function render(scores, players) {
   document.title = `replica · ${nombre}`;
   const st = stats(scores);
   const prom = st.mine.length ? Math.round(st.total / st.mine.length) : 0;
-  $("meta").innerHTML = `<div>personaje <b>${esc(AV.spriteDe(nombre))}</b></div><div>partidas <b>${st.mine.length}</b></div><div>primera <b>${st.mine.length ? shortDate(st.mine[st.mine.length - 1].play_date) : "—"}</b></div>`;
+  $("meta").innerHTML = `<div>personaje <b>${esc(AV.spriteDe(nombre) || "—")}</b></div><div>partidas <b>${st.mine.length}</b></div><div>primera <b>${st.mine.length ? shortDate(st.mine[st.mine.length - 1].play_date) : "—"}</b></div>`;
   renderAvatarArea(st);
 
   const row = (k, v, hi) => `<div class="stat${hi ? " hi" : ""}"><span class="muted">${k}</span><span class="v">${v}</span></div>`;

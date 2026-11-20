@@ -1,17 +1,10 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [424, 132, 44, 96], "caminando": [716, 318, 43, 76], "festejo": [4, 4, 68, 124], "sentado": [763, 318, 55, 76]},
+  "poses": {"parado": [902, 4, 44, 96], "caminando": [299, 132, 43, 76], "festejo": [4, 4, 68, 124], "sentado": [346, 132, 55, 76]},
   "podio": {"gana": "trofeo", "otro": "dino", "ultimo": "derrota"},
   "animaciones": {
     "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 114, "h": 106, "cuadros": [[76, 4], [194, 4], [312, 4], [430, 4], [548, 4], [666, 4], [784, 4]]},
-    "dino": {"titulo": "juega con el dino", "ms": 700, "pausa": 1600, "alto": 96, "mascota": true, "w": 118, "h": 60, "cuadros": [[688, 399], [810, 399], [4, 465], [126, 465]]},
-    "derrota": {"titulo": "queda tirado en el piso", "ms": 500, "pausa": 2000, "alto": 96, "w": 55, "h": 81, "cuadros": [[802, 132], [861, 132], [920, 132], [4, 233], [63, 233], [122, 233]]},
-    "compu": {"titulo": "usa la compu con el dino", "ms": 450, "alto": 96, "mascota": true, "w": 110, "h": 62, "cuadros": [[822, 318], [4, 399], [118, 399], [232, 399], [346, 399], [460, 399], [574, 399]]},
-    "caminar": {"titulo": "camina", "ms": 130, "alto": 96, "w": 44, "h": 77, "cuadros": [[619, 233], [667, 233], [715, 233], [763, 233], [811, 233], [859, 233], [907, 233], [955, 233]]},
-    "correr": {"titulo": "corre", "ms": 100, "alto": 96, "w": 85, "h": 77, "cuadros": [[4, 318], [93, 318], [182, 318], [271, 318], [360, 318], [449, 318], [538, 318], [627, 318]]},
-    "saltar": {"titulo": "salta", "ms": 150, "pausa": 600, "alto": 96, "w": 56, "h": 97, "cuadros": [[902, 4], [962, 4], [4, 132], [64, 132], [124, 132], [184, 132], [244, 132], [304, 132], [364, 132]]},
-    "caer": {"titulo": "cae y aterriza", "ms": 180, "pausa": 900, "alto": 96, "w": 51, "h": 92, "cuadros": [[472, 132], [527, 132], [582, 132], [637, 132], [692, 132], [747, 132]]},
-    "espera": {"titulo": "espera", "ms": 600, "alto": 96, "w": 43, "h": 79, "cuadros": [[431, 233], [478, 233], [525, 233], [572, 233]]},
-    "girar": {"titulo": "gira", "ms": 400, "alto": 96, "w": 46, "h": 80, "cuadros": [[181, 233], [231, 233], [281, 233], [331, 233], [381, 233]]}
+    "dino": {"titulo": "juega con el dino", "ms": 700, "pausa": 1600, "alto": 96, "mascota": true, "w": 118, "h": 60, "cuadros": [[405, 132], [527, 132], [649, 132], [771, 132]]},
+    "derrota": {"titulo": "queda tirado en el piso", "ms": 500, "pausa": 2000, "alto": 96, "w": 55, "h": 81, "cuadros": [[950, 4], [4, 132], [63, 132], [122, 132], [181, 132], [240, 132]]}
   }
 }

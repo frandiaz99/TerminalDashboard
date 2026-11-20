@@ -38,13 +38,6 @@ if __name__ == '__main__' and len(sys.argv) >= 3:
             'trofeo':  dict(titulo='levanta la copa', frames=r('trofeo', 7), ms=420, pausa=1400),
             'dino':    dict(titulo='juega con el dino', frames=r('interaccion', 4), ms=700, pausa=1600, mascota=True, anclaje='talon'),
             'derrota': dict(titulo='queda tirado en el piso', frames=r('derrota', 6), ms=500, pausa=2000),
-            'compu':   dict(titulo='usa la compu con el dino', frames=r('escena', 7), ms=450, mascota=True, anclaje='talon'),
-            'caminar': dict(titulo='camina', frames=r('caminata', 8), ms=130),
-            'correr':  dict(titulo='corre', frames=r('carrera', 8), ms=100),
-            'saltar':  dict(titulo='salta', frames=r('salto', 9), ms=150, pausa=600),
-            'caer':    dict(titulo='cae y aterriza', frames=r('caida', 6), ms=180, pausa=900),
-            'espera':  dict(titulo='espera', frames=r('idle', 4), ms=600),
-            'girar':   dict(titulo='gira', frames=r('girar', 5), ms=400),
         },
         podio={'gana': 'trofeo', 'otro': 'dino', 'ultimo': 'derrota'},
         preview='salida/prev_nico.png')

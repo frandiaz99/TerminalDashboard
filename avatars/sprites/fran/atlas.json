@@ -1,16 +1,10 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [559, 264, 50, 96], "caminando": [668, 366, 48, 93], "festejo": [528, 159, 68, 98]},
+  "poses": {"parado": [4, 159, 50, 96], "caminando": [58, 159, 48, 93], "festejo": [943, 4, 68, 98]},
   "podio": {"gana": "trofeo", "otro": "bloques", "ultimo": "derrota"},
   "animaciones": {
     "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 80, "h": 122, "cuadros": [[439, 4], [523, 4], [607, 4], [691, 4], [775, 4], [859, 4]]},
     "bloques": {"titulo": "golpea el bloque", "ms": 330, "pausa": 1100, "alto": 96, "w": 83, "h": 151, "cuadros": [[4, 4], [91, 4], [178, 4], [265, 4], [352, 4]]},
-    "derrota": {"titulo": "queda tirado en el piso", "ms": 550, "pausa": 2000, "alto": 96, "w": 87, "h": 71, "cuadros": [[4, 464], [95, 464], [186, 464], [277, 464]]},
-    "caminar": {"titulo": "camina", "ms": 140, "alto": 96, "w": 50, "h": 95, "cuadros": [[613, 264], [667, 264], [721, 264], [775, 264], [829, 264], [883, 264], [937, 264]]},
-    "correr": {"titulo": "corre", "ms": 100, "alto": 96, "w": 79, "h": 94, "cuadros": [[4, 366], [87, 366], [170, 366], [253, 366], [336, 366], [419, 366], [502, 366], [585, 366]]},
-    "saltar": {"titulo": "salta", "ms": 260, "pausa": 600, "alto": 96, "w": 60, "h": 101, "cuadros": [[943, 4], [4, 159], [68, 159]]},
-    "caparazon": {"titulo": "juega con el caparazón", "ms": 300, "alto": 96, "w": 107, "h": 98, "cuadros": [[600, 159], [711, 159], [822, 159], [4, 264], [115, 264], [226, 264], [337, 264], [448, 264]]},
-    "tubo": {"titulo": "entra y sale del tubo", "ms": 400, "pausa": 900, "alto": 96, "w": 62, "h": 101, "cuadros": [[132, 159], [198, 159], [264, 159], [330, 159], [396, 159], [462, 159]]},
-    "espera": {"titulo": "espera", "ms": 600, "alto": 96, "w": 52, "h": 81, "cuadros": [[720, 366], [776, 366], [832, 366], [888, 366]]}
+    "derrota": {"titulo": "queda tirado en el piso", "ms": 550, "pausa": 2000, "alto": 96, "w": 87, "h": 71, "cuadros": [[110, 159], [201, 159], [292, 159], [383, 159]]}
   }
 }

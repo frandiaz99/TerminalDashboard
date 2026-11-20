@@ -35,9 +35,10 @@
   function spriteDe(nombre) {
     const elegido = (global.AVATARES || {})[nombre];
     if (typeof elegido === "string" && /^[a-z0-9_-]+$/i.test(elegido)) return elegido;
-    if (elegido !== undefined) console.warn(`[avatares] ${nombre}: "${elegido}" no es un nombre de carpeta válido; se usa uno automático.`);
-    const pool = global.SPRITES && global.SPRITES.length ? global.SPRITES : ["rulos"];
-    return pool[hash(nombre) % pool.length];
+    if (elegido !== undefined) console.warn(`[avatares] ${nombre}: "${elegido}" no es un nombre de carpeta válido.`);
+    // sin personaje propio: uno de SPRITES (si hay); si no, ninguno (null)
+    const pool = global.SPRITES || [];
+    return pool.length ? pool[hash(nombre) % pool.length] : null;
   }
 
   // ───────────────────────── medidas de cada imagen ─────────────────────────
@@ -98,7 +99,7 @@
         img.src = PET_BASE + id + ".png" + V();
       }));
     }
-    for (const id of new Set(ids)) {
+    for (const id of new Set(ids.filter(Boolean))) {
       if (ANIMS.has(id)) continue;
       ANIMS.set(id, null);
       // primero atlas.json (una sola imagen con todo); si no está, imágenes sueltas
@@ -203,7 +204,7 @@
 
   // si falta una pose se usa la de parado; si falta todo, el primer personaje cargado
   function meta(id, pose) {
-    return META.get(id + "/" + pose) || META.get(id + "/parado") || META.get([...META.keys()][0]) || null;
+    return META.get(id + "/" + pose) || META.get(id + "/parado") || null;
   }
 
   // ───────────────────────── agregados en pixel art ─────────────────────────

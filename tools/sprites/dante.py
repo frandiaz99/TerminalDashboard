@@ -22,13 +22,6 @@ if __name__ == '__main__':
         poses={'parado': ('final', 0), 'caminando': ('caminata', 2), 'festejo': ('poses', 5), 'sentado': ('sentarse', 1)},
         anims={
             'trofeo':  dict(titulo='levanta la copa', frames=r('trofeo', 6), ms=420, pausa=1400),
-            'moto':    dict(titulo='anda en moto', frames=r('moto', 8), ms=130),
-            'caminar': dict(titulo='camina', frames=r('caminata', 7), ms=140),
-            'correr':  dict(titulo='corre', frames=r('corrida', 8), ms=100),
-            'mate':    dict(titulo='toma mate', frames=r('uso', 6), ms=520, pausa=1000),
-            'leer':    dict(titulo='lee el mapa', frames=r('uso', 2, 6), ms=900),
-            'compu':   dict(titulo='usa la compu', frames=r('uso', 2, 8), ms=700),
-            'espera':  dict(titulo='espera', frames=r('idle', 4), ms=600),
         },
         podio={'gana': 'trofeo', 'otro': 'moto'},
         preview='salida/prev_dante.png')

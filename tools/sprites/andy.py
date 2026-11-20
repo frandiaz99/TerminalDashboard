@@ -51,10 +51,7 @@ for pose, (b, i) in {'parado': ('final', 0), 'caminando': ('poses', 2), 'festejo
 A = {}
 A['trofeo'] = dict(titulo='levanta la copa', cuadros=anim('trofeo', [('trofeo', i) for i in range(7)]), ms=420, pausa=1400, alto=ALTO)
 A['piano'] = dict(titulo='toca el teclado', cuadros=anim('piano', [('piano', i) for i in range(6)]), ms=380, pausa=900, alto=ALTO)
-A['caminar'] = dict(titulo='camina', cuadros=anim('caminar', [('poses', i) for i in range(4)]), ms=170, alto=ALTO)
-A['mate'] = dict(titulo='toma mate', cuadros=anim('mate', [('mate', i) for i in range(9)]), ms=480, pausa=1200, alto=ALTO)
 A['piso'] = dict(titulo='queda tirado en el piso', cuadros=anim('piso', [('piso', i) for i in range(6)], 'talon'), ms=450, pausa=1800, alto=ALTO)
-A['compu'] = dict(titulo='usa la compu', cuadros=anim('compu', [('poses', 7)]), ms=700, alto=ALTO)
 man = {'podio': {'gana': 'trofeo', 'otro': 'piano'}, 'animaciones': A}
 lines = ',\n'.join(f'    {json.dumps(k) + ":":<10} {json.dumps(v, ensure_ascii=False)}' for k, v in A.items())
 open(f'{OUT}/animaciones.json', 'w', encoding='utf-8').write('{\n  "podio": { "gana": "trofeo", "otro": "piano", "ultimo": "piso" },\n  "animaciones": {\n' + lines + '\n  }\n}\n')
