@@ -3,21 +3,22 @@
 
 Uso:  python dante.py hojas/dante.png salida/dante
 """
-import sys
+import sys, os
 from magenta import procesar
 
 procesar(sys.argv[1], sys.argv[2],
     filas=['espera', 'trofeo', 'moto', 'derrota', 'dormido', 'caminar'],
     cuadros=[4, 7, 8, 6, 4, 8],
     referencia=('espera', 0),
-    igualar=['trofeo', 'caminar'],
+    igualar={'trofeo': 'trofeo', 'caminar': 'caminar', 'festejo': 'festejo', 'festejo_pose': 'festejo'},
+    extras=[dict(src=os.path.join(os.path.dirname(sys.argv[1]), 'dante_festejo.png'), filas=['festejo', 'festejo_pose'], cuadros=[7, 1], por_columnas=['festejo'])],
     por_columnas=['moto', 'derrota'],
     sin_tinte=True,
-    poses={'parado': ('espera', 0), 'caminando': ('caminar', 2), 'festejo': ('trofeo', 6), 'sentado': ('dormido', 0)},
+    poses={'parado': ('espera', 0), 'caminando': ('caminar', 2), 'festejo': ('festejo_pose', 0), 'sentado': ('dormido', 0)},
     anims={
-        'trofeo':  dict(fila='trofeo',  titulo='levanta la copa', ms=420, pausa=1400),
+        'festejo': dict(fila='festejo', titulo='festeja con un trompo en la moto', ms=380, pausa=1600, anclaje='grande'),
         'moto':    dict(fila='moto',    titulo='anda en moto y hace un caballito', ms=160, pausa=1400, anclaje='grande'),
         'derrota': dict(fila='derrota', titulo='se le pincha la rueda y sale volando', ms=380, pausa=2200, anclaje='grande'),
     },
-    podio={'gana': 'trofeo', 'otro': 'moto', 'ultimo': 'derrota'},
+    podio={'gana': 'festejo', 'otro': 'moto', 'ultimo': 'derrota'},
     prev='salida/prev_dante.png')

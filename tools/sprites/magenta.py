@@ -8,13 +8,17 @@ Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su config
                escala: se igualan a la referencia
   poses        {"parado": (fila, cuadro), ...}
   anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?, "mascota"?}}  mascota: True si la
-               mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "grande" (pie de atrás de la figura más grande, p. ej. la moto), "centro" (por defecto,
+               mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "grande" (pie de atrás de la figura más ancha, p. ej. la moto), "centro" (por defecto,
                centro del cuerpo) o "talon" (el pie de atrás queda fijo: para caídas hacia adelante)
   podio        {"gana", "otro", "ultimo"}
   por_columnas filas donde cada cuadro tiene varias figuras grandes (ej. Nico + el dino): los cuadros
                se separan por los espacios vacíos más anchos entre columnas
   transformar  función que recibe la imagen (uint8) y la devuelve cambiada (ej. tono de piel)
   mascota      (fila, cuadro, ruta): guarda ese cuadro como imagen de la mascota, en la misma escala
+  extras       hojas adicionales del mismo personaje: [{"src", "filas", "cuadros", "por_columnas"?}]
+               sus filas se suman a las de la hoja principal (con la misma escala y transformación)
+  igualar      también puede ser {fila: fila_de_referencia} para escalar una fila según otra
+  poses        un 3.er elemento "solo" toma solo la figura principal (sin efectos ni mascota)
   sin_tinte    True si el personaje no tiene nada magenta/rosa: los píxeles teñidos por el fondo
                (rayos de las ruedas, bordes claros) pasan a gris
 """
@@ -24,8 +28,16 @@ from scipy import ndimage as nd
 
 
 def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=(), alto=None, prev=None,
-             por_columnas=(), transformar=None, mascota=None, sin_tinte=False):
+             por_columnas=(), transformar=None, mascota=None, sin_tinte=False, extras=()):
     ALTO = alto or int(os.environ.get('ALTO', 104))
+    F, IMG = {}, {}
+    _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG)
+    for ex in extras:
+        _hoja(ex['src'], ex['filas'], ex['cuadros'], ex.get('por_columnas', ()), transformar, F, IMG)
+    _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, mascota, sin_tinte)
+
+
+def _hoja(src, filas, cuadros, por_columnas, transformar, F, IMG):
     a = np.array(Image.open(src).convert('RGB'))
     if transformar: a = transformar(a)
     a = a.astype(int)
@@ -55,6 +67,13 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
         y0, y1 = franjas[i]; h = y1 - y0
         corte = y0 + int(h * .3) + int(np.argmin(cuenta[y0 + int(h * .3):y0 + int(h * .7)]))
         franjas[i:i + 1] = [(y0, corte), (corte + 1, y1)]
+    # si sobran franjas (chispas sueltas arriba de una fila), la más baja se une a la vecina más cercana
+    while len(franjas) > len(filas):
+        i = min(range(len(franjas)), key=lambda i: franjas[i][1] - franjas[i][0])
+        gap = lambda j: abs(franjas[j][0] - franjas[i][1]) if j > i else abs(franjas[i][0] - franjas[j][1])
+        j = min([j for j in (i - 1, i + 1) if 0 <= j < len(franjas)], key=gap)
+        a_, b_ = sorted((i, j))
+        franjas[a_:b_ + 1] = [(franjas[a_][0], franjas[b_][1])]
     assert len(franjas) == len(filas), f'se esperaban {len(filas)} filas y hay {len(franjas)}: {franjas}'
 
     def cuadros_de(y0, y1, n):
@@ -98,8 +117,12 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
             res.append((m, m, y0))
         return res
 
-    F = {nombre: (cuadros_por_columnas if nombre in por_columnas else cuadros_de)(y0, y1, n)
-         for nombre, (y0, y1), n in zip(filas, franjas, cuadros)}
+    for nombre, (y0, y1), n in zip(filas, franjas, cuadros):
+        F[nombre] = (cuadros_por_columnas if nombre in por_columnas else cuadros_de)(y0, y1, n)
+        IMG[nombre] = a
+
+
+def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, mascota, sin_tinte):
 
     def alto_de(fila, i=0):
         yy = np.where(F[fila][i][0].any(1))[0]
@@ -107,13 +130,14 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
 
     ref = alto_de(*referencia)
     k = ALTO / ref
-    escala = {fila: ref / alto_de(fila) for fila in igualar}
+    igualar = igualar if isinstance(igualar, dict) else {f: f for f in igualar}
+    escala = {fila: ref / alto_de(base) for fila, base in igualar.items()}
 
     def recorte(mask, y0, fila):
         kk = k * escala.get(fila, 1)
         ys, xs = np.where(mask)
         t, bt, l, rr = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
-        rgb = a[y0 + t:y0 + bt, l:rr].copy()
+        rgb = IMG[fila][y0 + t:y0 + bt, l:rr].copy()
         if sin_tinte:
             R, G, B = rgb[..., 0], rgb[..., 1], rgb[..., 2]
             t_ = (R - G > 25) & (B - G > 25) & (np.abs(R - B) < 70)
@@ -134,7 +158,8 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
                 x = xs[ys >= ys.max() - (ys.max() - ys.min()) * .1].min()
             elif anclaje == 'grande':      # rueda de atrás de la figura más grande (la moto), sin polvo ni rayitas
                 lb, kk2 = nd.label(cuerpo)
-                g = 1 + int(np.argmax(nd.sum(cuerpo, lb, range(1, kk2 + 1))))
+                ob = nd.find_objects(lb)          # la más ancha (la moto), aunque el personaje tenga más píxeles
+                g = 1 + max(range(kk2), key=lambda i: ob[i][1].stop - ob[i][1].start)
                 gy, gx = np.where(lb == g)
                 x = gx[gy >= gy.max() - (gy.max() - gy.min()) * .1].min()
             else:
@@ -149,8 +174,12 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
         return len(ims)
 
     os.makedirs(out, exist_ok=True)
-    for pose, (fila, i) in poses.items():
+    for pose, (fila, i, *modo) in poses.items():
         cuerpo, todo, y0 = F[fila][i]
+        if modo and modo[0] == 'solo':          # figura principal sola (sin efectos ni mascota)
+            lb, kk2 = nd.label(cuerpo)
+            cuerpo = lb == 1 + int(np.argmax(nd.sum(cuerpo, lb, range(1, kk2 + 1))))
+            todo = cuerpo
         recorte(todo, y0, fila)[0].save(os.path.join(out, pose + '.png'))
 
     if mascota:
