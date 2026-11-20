@@ -76,6 +76,9 @@
   .avt img, .avt svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
   .avt img, .avt .spr, .podio-svg image { filter: drop-shadow(0 0 1px rgba(214, 219, 226, .55)); image-rendering: pixelated; }
   .avt .spr { position: absolute; left: 0; top: 0; display: block; background-repeat: no-repeat; }
+  /* respiración de las poses quietas */
+  .avt-pj.quieto { transform-origin: 50% 100%; animation: respira 2.6s step-end infinite; }
+  @keyframes respira { 0% { transform: none } 50% { transform: scaleY(.98) } }
   .avt-pj { position: absolute; left: 0; top: 0; }
   .avt img.mascota { image-rendering: pixelated; animation: hop 1.8s steps(2) infinite; }
   @keyframes hop { 50% { transform: translateY(-8%); } }

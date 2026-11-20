@@ -132,6 +132,15 @@
   .avt-pj { position: absolute; left: 0; top: 0; }
   .avt img.mascota { image-rendering: pixelated; animation: hop 1.8s steps(2) infinite; }
   .podio-svg .mascota { animation: hop 1.8s steps(2) infinite; transform-box: fill-box; }
+  /* entrada al podio: caen con un rebote (solo la primera vez que se dibuja) */
+  .podio-svg .entra { animation: entra .9s cubic-bezier(.3, .6, .4, 1) both; }
+  @keyframes entra { 0% { transform: translateY(-60px); opacity: 0 } 40% { opacity: 1 } 60% { transform: translateY(0) } 72% { transform: translateY(-4px) } 84% { transform: translateY(0) } 92% { transform: translateY(-1px) } 100% { transform: none } }
+  /* confeti sobre el 1.º */
+  .podio-svg .papel { animation: cae var(--d) linear var(--r) infinite; opacity: 0; }
+  @keyframes cae { 0% { transform: translate(0, -46px); opacity: 0 } 12% { opacity: 1 } 80% { opacity: 1 } 100% { transform: translate(var(--dx), 0); opacity: 0 } }
+  /* respiración de las poses quietas */
+  .avt-pj.quieto { transform-origin: 50% 100%; animation: respira 2.6s step-end infinite; }
+  @keyframes respira { 0% { transform: none } 50% { transform: scaleY(.98) } }
   @keyframes hop { 50% { transform: translateY(-8%); } }
   .avt-busto { overflow: hidden; background: #14181d; border: 1px solid var(--line); border-radius: 4px; }
   .avt-busto img, .avt-busto svg { width: auto; height: auto; }
@@ -346,7 +355,8 @@ function renderPodio(L) {
     if (!s) return null;
     const e = L.estado(s.name);
     return { nombre: s.name, estado: { ...e, pendiente: false, medalla: medalla[i] || undefined } };
-  }));
+  }), { entrada: !renderPodio.yaEntro && L.top.length > 0 });
+  if (L.top.length) renderPodio.yaEntro = true;      // la caída al podio se ve una sola vez
   const lab = i => {
     const s = L.top[i];
     return s ? `<div class="${i === 0 ? "first" : ""}"><b><a class="pl" href="${perfil(s.name)}">${esc(s.name)}</a>${s.daily_seen ? ' <span class="flag">*</span>' : ""}</b><span>${n(s.score)}</span></div>` : `<div><b class="muted">—</b><span></span></div>`;

@@ -354,8 +354,34 @@
     return out;
   }
 
+  // ───────────────────────── efectos del podio (en código, no en las imágenes) ─────────────────────────
+  // Sombra bajo los pies, en píxeles: dos franjas semitransparentes, más oscura en el centro.
+  function sombra(cx, y, ancho) {
+    const f = (w, a) => `<rect x="${Math.round(cx - w / 2)}" y="${y}" width="${Math.round(w)}" height="2" fill="rgba(0,0,0,${a})"/>`;
+    return `<g class="sombra" shape-rendering="crispEdges">${f(ancho, .22)}${f(ancho * .6, .22)}</g>`;
+  }
+  // Un personaje del podio: la sombra queda quieta y el resto puede "entrar" cayendo (solo la 1.ª vez).
+  const ORDEN_ENTRADA = { 3: 0, 2: .25, 1: .5, 4: .8 };
+  function grupoPJ(lugar, partes, cx, piso, ancho, entrada) {
+    const e = entrada ? ` class="entra" style="animation-delay:${ORDEN_ENTRADA[lugar]}s"` : "";
+    return `<g>${sombra(cx, piso, ancho)}<g${e}>${partes.join("")}</g></g>`;
+  }
+  // Confeti sobre el ganador: papelitos de 2×1 que caen en loop, con posiciones fijas (no cambian al refrescar).
+  const CONFETI = [G, GL, "#e0566a", "#5aa9e6", "#7bd389", "#f4f1e8"];
+  function confeti(x0, ancho, piso) {
+    let r = 7, out = "";
+    const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < 18; i++) {
+      const x = Math.round(x0 - 6 + rnd() * (ancho + 12)), dx = Math.round((rnd() - .5) * 10);
+      const d = (2.6 + rnd() * 1.8).toFixed(2), del = (-rnd() * 4).toFixed(2), vert = rnd() < .4;
+      out += `<rect class="papel" x="${x}" y="${piso - 8}" width="${vert ? 1 : 2}" height="${vert ? 2 : 1}" fill="${CONFETI[i % CONFETI.length]}" style="--dx:${dx}px;--d:${d}s;--r:${del}s"/>`;
+    }
+    return `<g class="confeti" shape-rendering="crispEdges">${out}</g>`;
+  }
+
   // top: [{ nombre, estado }, …] en orden 1.º, 2.º, 3.º, 4.º (null = lugar vacío)
-  function podioSVG(top3) {
+  // opts.entrada: los personajes caen al podio con un rebote (para la primera vez que se muestra)
+  function podioSVG(top3, opts = {}) {
     const m = new Map();
     const set = (x, y, c) => m.set(x + "," + y, c);
     const rect = (x1, y1, x2, y2, c) => { for (let y = y1; y <= y2; y++) for (let x = x1; x <= x2; x++) set(x, y, typeof c === "function" ? c(x, y) : c); };
@@ -377,6 +403,7 @@
       for (const k of dm) { const [x, y] = k.split(",").map(Number); set(x, y, dim(b.num)); }
       LAUREL.forEach((r, i) => [...r].forEach((ch, j) => { if (ch === "#") { set(dx - 8 + j, ddy + 1 + i, dim(b.laurel)); set(dx + 11 + (4 - j), ddy + 1 + i, dim(b.laurel)); } }));
       if (p) {
+        const g = [];
         const id = spriteDe(p.nombre), set = ANIMS.get(id);
         // si el personaje tiene animaciones de podio: "gana" para el 1.º, "otro" para 2.º y 3.º
         const an = set ? animDe(id, b.lugar === 1 ? set.podio.gana : set.podio.otro) : null;
@@ -384,25 +411,27 @@
         if (an) {
           const k = ALTO_PJ / an.alto, w = an.w * k, h = an.h * k;
           const x = b.x + BW / 2 - (an.talon + an.alto * .22) * k, y = top - h;
-          chars.push(cuadroSVG(an.frames[0], x, y, w, h, framesAttr(an)));
+          g.push(cuadroSVG(an.frames[0], x, y, w, h, framesAttr(an)));
           const pet = an.mascota ? null : mascotaDe(p.nombre);
           if (pet) {
             // detrás del personaje (mira a la derecha), así no tapa lo que tiene en las manos
             const ph = Math.round(ALTO_PJ * PET_ALTO), pw = ph * pet.w / pet.h;
             const px = Math.max(b.x - 2, x + an.talon * k - pw + 1);
-            chars.unshift(`<image class="mascota" href="${esc(pet.src)}" x="${px.toFixed(2)}" y="${top - ph}" width="${pw.toFixed(2)}" height="${ph}" style="image-rendering:pixelated"/>`);
+            g.unshift(`<image class="mascota" href="${esc(pet.src)}" x="${px.toFixed(2)}" y="${top - ph}" width="${pw.toFixed(2)}" height="${ph}" style="image-rendering:pixelated"/>`);
           }
         } else if (mt) {
           const k = ALTO_PJ / (base || mt).h;                 // misma escala para todas las poses del personaje
           const w = mt.w * k, h = mt.h * k, x = b.x + BW / 2 - mt.cx * k, y = top - h;
-          chars.push(`<svg x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p.estado || {}, pose)}</g></svg>`);
+          g.push(`<svg x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p.estado || {}, pose)}</g></svg>`);
           const pet = mascotaDe(p.nombre);
           if (pet) {
             const ph = Math.round(ALTO_PJ * PET_ALTO), pw = ph * pet.w / pet.h;
             const px = Math.min(b.x + BW - pw + 2, x + w - 2);
-            chars.push(`<image class="mascota" href="${esc(pet.src)}" x="${px.toFixed(2)}" y="${top - ph}" width="${pw.toFixed(2)}" height="${ph}" style="image-rendering:pixelated"/>`);
+            g.push(`<image class="mascota" href="${esc(pet.src)}" x="${px.toFixed(2)}" y="${top - ph}" width="${pw.toFixed(2)}" height="${ph}" style="image-rendering:pixelated"/>`);
           }
         }
+        chars.push(grupoPJ(b.lugar, g, b.x + BW / 2, top, 22, opts.entrada));
+        if (b.lugar === 1) chars.push(confeti(b.x, BW, top));
       }
     }
     // 4.º lugar: sin bloque, tirado en el piso ("podio.ultimo" del personaje); si no tiene esa animación, sentado
@@ -413,12 +442,12 @@
       const cx = CUARTO.x + CUARTO.w / 2, base = meta(id, "parado");
       if (an) {
         const k = ALTO_PJ / an.alto, w = an.w * k, h = an.h * k;
-        chars.push(cuadroSVG(an.frames[0], cx - w / 2, GROUND - h, w, h, framesAttr(an)));
+        chars.push(grupoPJ(4, [cuadroSVG(an.frames[0], cx - w / 2, GROUND - h, w, h, framesAttr(an))], cx, GROUND - 1, Math.min(40, w * .8), opts.entrada));
       } else {
         const mt = meta(id, "sentado");
         if (mt) {
           const k = ALTO_PJ / (base || mt).h, w = mt.w * k, h = mt.h * k, x = cx - mt.cx * k;
-          chars.push(`<svg x="${x.toFixed(2)}" y="${(GROUND - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p4.estado || {}, "sentado")}</g></svg>`);
+          chars.push(grupoPJ(4, [`<svg x="${x.toFixed(2)}" y="${(GROUND - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p4.estado || {}, "sentado")}</g></svg>`], cx, GROUND - 1, Math.min(30, w * .8), opts.entrada));
         }
       }
     }
