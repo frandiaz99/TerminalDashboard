@@ -3,10 +3,10 @@
   "poses": {"parado": [187, 126, 44, 96], "festejo": [883, 126, 59, 89], "sentado": [946, 126, 55, 79]},
   "podio": {"gana": "festejo", "otro": "dino", "ultimo": "derrota"},
   "animaciones": {
-    "festejo": {"titulo": "festeja saltando con el dino", "ms": 380, "pausa": 1600, "alto": 96, "mascota": true, "w": 125, "h": 118, "cuadros": [[4, 4], [133, 4], [262, 4], [391, 4], [520, 4], [649, 4], [778, 4]]},
-    "dino": {"titulo": "juega a la pelota con el dino", "ms": 450, "pausa": 1600, "alto": 96, "mascota": true, "w": 109, "h": 76, "cuadros": [[408, 227], [521, 227], [634, 227], [747, 227], [860, 227], [4, 310]]},
-    "derrota": {"titulo": "queda tirado en el piso", "ms": 450, "pausa": 2000, "alto": 96, "w": 104, "h": 96, "cuadros": [[235, 126], [343, 126], [451, 126], [559, 126], [667, 126], [775, 126]]},
+    "festejo": {"titulo": "festeja saltando con el dino", "ms": 380, "pausa": 1600, "pausaEn": 6, "alto": 96, "mascota": true, "w": 125, "h": 118, "cuadros": [[4, 4], [133, 4], [262, 4], [391, 4], [520, 4], [649, 4], [778, 4], [649, 4], [520, 4], [391, 4], [262, 4], [133, 4]]},
+    "dino": {"titulo": "juega a la pelota con el dino", "ms": 450, "pausa": 1600, "pausaEn": 5, "alto": 96, "mascota": true, "w": 109, "h": 76, "cuadros": [[408, 227], [521, 227], [634, 227], [747, 227], [860, 227], [4, 310], [860, 227], [747, 227], [634, 227], [521, 227]]},
+    "derrota": {"titulo": "queda tirado en el piso", "ms": 450, "pausa": 2000, "pausaEn": 5, "alto": 96, "w": 104, "h": 96, "cuadros": [[235, 126], [343, 126], [451, 126], [559, 126], [667, 126], [775, 126], [667, 126], [559, 126], [451, 126], [343, 126]]},
     "espera": {"titulo": "espera", "ms": 600, "pausa": 600, "alto": 96, "w": 57, "h": 97, "cuadros": [[907, 4], [4, 126], [65, 126], [126, 126]]},
-    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "alto": 96, "w": 97, "h": 79, "cuadros": [[4, 227], [105, 227], [206, 227], [307, 227]]}
+    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "pausaEn": 3, "alto": 96, "w": 97, "h": 79, "cuadros": [[4, 227], [105, 227], [206, 227], [307, 227], [206, 227], [105, 227]]}
   }
 }

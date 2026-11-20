@@ -7,7 +7,8 @@ Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su config
   igualar      filas cuyo 1.er cuadro es el personaje parado y que pueden venir dibujadas a otra
                escala: se igualan a la referencia
   poses        {"parado": (fila, cuadro), ...}
-  anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?, "mascota"?}}  mascota: True si la
+  anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?, "mascota"?, "bucle"?}}  bucle: "idayvuelta"
+               (por defecto: va y vuelve para terminar como empieza) o "natural" (la fila ya cierra el ciclo)  mascota: True si la
                mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "grande" (pie de atrás de la figura más ancha, p. ej. la moto), "centro" (por defecto,
                centro del cuerpo) o "talon" (el pie de atrás queda fijo: para caídas hacia adelante)
   podio        {"gana", "otro", "ultimo"}
@@ -194,6 +195,11 @@ def _salida(F, IMG, out, ALTO, referencia, poses, anims, podio, igualar, prev, m
     for nombre, d in anims.items():
         n = guardar_anim(d['fila'], nombre, d.get('anclaje', 'centro'))
         man['animaciones'][nombre] = {'titulo': d['titulo'], 'cuadros': n, 'ms': d['ms'], 'pausa': d['pausa'], 'alto': ALTO}
+        # bucle "idayvuelta" (por defecto): llega al último cuadro, se detiene ahí y vuelve al primero,
+        # así la animación termina como empieza. "natural": la secuencia ya termina como empieza.
+        if d.get('bucle', 'idayvuelta') == 'idayvuelta' and n > 2:
+            man['animaciones'][nombre]['orden'] = list(range(n)) + list(range(n - 2, 0, -1))
+            man['animaciones'][nombre]['pausaEn'] = n - 1
         if d.get('mascota'): man['animaciones'][nombre]['mascota'] = True    # la mascota ya está en los cuadros
     lines = ',\n'.join(f'    {json.dumps(n) + ":":<12} {json.dumps(v, ensure_ascii=False)}' for n, v in man['animaciones'].items())
     open(os.path.join(out, 'animaciones.json'), 'w', encoding='utf-8').write(

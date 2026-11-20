@@ -3,10 +3,10 @@
   "poses": {"parado": [349, 113, 70, 96], "caminando": [423, 113, 62, 96], "festejo": [4, 4, 99, 105], "sentado": [258, 313, 76, 91]},
   "podio": {"gana": "invento", "otro": "mezcla", "ultimo": "explosion"},
   "animaciones": {
-    "invento": {"titulo": "su invento funciona", "ms": 330, "pausa": 1400, "alto": 96, "w": 108, "h": 105, "cuadros": [[107, 4], [219, 4], [331, 4], [443, 4], [555, 4], [667, 4], [779, 4]]},
-    "mezcla": {"titulo": "mezcla dos frascos", "ms": 380, "pausa": 1200, "alto": 96, "w": 98, "h": 95, "cuadros": [[837, 113], [4, 214], [106, 214], [208, 214], [310, 214], [412, 214]]},
-    "explosion": {"titulo": "le explota el experimento", "ms": 420, "pausa": 2000, "alto": 96, "w": 123, "h": 95, "cuadros": [[514, 214], [641, 214], [768, 214], [895, 214], [4, 313], [131, 313]]},
+    "invento": {"titulo": "su invento funciona", "ms": 330, "pausa": 1400, "pausaEn": 6, "alto": 96, "w": 108, "h": 105, "cuadros": [[107, 4], [219, 4], [331, 4], [443, 4], [555, 4], [667, 4], [779, 4], [667, 4], [555, 4], [443, 4], [331, 4], [219, 4]]},
+    "mezcla": {"titulo": "mezcla dos frascos", "ms": 380, "pausa": 1200, "pausaEn": 5, "alto": 96, "w": 98, "h": 95, "cuadros": [[837, 113], [4, 214], [106, 214], [208, 214], [310, 214], [412, 214], [310, 214], [208, 214], [106, 214], [4, 214]]},
+    "explosion": {"titulo": "le explota el experimento", "ms": 420, "pausa": 2000, "pausaEn": 5, "alto": 96, "w": 123, "h": 95, "cuadros": [[514, 214], [641, 214], [768, 214], [895, 214], [4, 313], [131, 313], [4, 313], [895, 214], [768, 214], [641, 214]]},
     "espera": {"titulo": "espera", "ms": 600, "pausa": 600, "alto": 96, "w": 83, "h": 96, "cuadros": [[489, 113], [576, 113], [663, 113], [750, 113]]},
-    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "alto": 96, "w": 111, "h": 97, "cuadros": [[891, 4], [4, 113], [119, 113], [234, 113]]}
+    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "pausaEn": 3, "alto": 96, "w": 111, "h": 97, "cuadros": [[891, 4], [4, 113], [119, 113], [234, 113], [119, 113], [4, 113]]}
   }
 }

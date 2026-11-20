@@ -3,10 +3,10 @@
   "poses": {"parado": [523, 133, 46, 96], "caminando": [263, 133, 48, 98], "festejo": [160, 133, 99, 117], "sentado": [623, 454, 72, 75]},
   "podio": {"gana": "festejo", "otro": "moto", "ultimo": "derrota"},
   "animaciones": {
-    "festejo": {"titulo": "festeja con un trompo en la moto", "ms": 380, "pausa": 1600, "alto": 96, "w": 152, "h": 125, "cuadros": [[4, 4], [160, 4], [316, 4], [472, 4], [628, 4], [784, 4], [4, 133]]},
+    "festejo": {"titulo": "festeja con un trompo en la moto", "ms": 380, "pausa": 1600, "pausaEn": 6, "alto": 96, "w": 152, "h": 125, "cuadros": [[4, 4], [160, 4], [316, 4], [472, 4], [628, 4], [784, 4], [4, 133], [784, 4], [628, 4], [472, 4], [316, 4], [160, 4]]},
     "moto": {"titulo": "anda en moto y hace un caballito", "ms": 160, "pausa": 1400, "alto": 96, "w": 127, "h": 92, "cuadros": [[573, 133], [704, 133], [835, 133], [4, 262], [135, 262], [266, 262], [397, 262], [528, 262]]},
-    "derrota": {"titulo": "se le pincha la rueda y sale volando", "ms": 380, "pausa": 2200, "alto": 96, "w": 211, "h": 92, "cuadros": [[659, 262], [4, 358], [219, 358], [434, 358], [649, 358], [4, 454]]},
+    "derrota": {"titulo": "se le pincha la rueda y sale volando", "ms": 380, "pausa": 2200, "pausaEn": 5, "alto": 96, "w": 211, "h": 92, "cuadros": [[659, 262], [4, 358], [219, 358], [434, 358], [649, 358], [4, 454], [649, 358], [434, 358], [219, 358], [4, 358]]},
     "espera": {"titulo": "espera", "ms": 600, "pausa": 600, "alto": 96, "w": 48, "h": 97, "cuadros": [[315, 133], [367, 133], [419, 133], [471, 133]]},
-    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "alto": 96, "w": 97, "h": 76, "cuadros": [[219, 454], [320, 454], [421, 454], [522, 454]]}
+    "dormido": {"titulo": "se queda dormido", "ms": 700, "pausa": 2400, "pausaEn": 3, "alto": 96, "w": 97, "h": 76, "cuadros": [[219, 454], [320, 454], [421, 454], [522, 454], [421, 454], [320, 454]]}
   }
 }
