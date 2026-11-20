@@ -5,7 +5,7 @@
 # Después copiá salida/<personaje>/ a avatars/sprites/<personaje>/, salida/nico_dino.png a
 # avatars/mascotas/dino.png y subí AVATARES_VERSION en avatars/players.js.
 set -e
-export ALTO=48          # alto en píxeles reales del personaje parado
+export ALTO=96          # alto en píxeles reales del personaje parado
 mkdir -p salida
 PREVIEW=salida/prev_andy.png python andy.py hojas/andy.png salida/andy
 python dante.py hojas/dante.png salida/dante
