@@ -8,13 +8,15 @@ Lo usan los scripts de cada personaje (fran.py, andy.py…) pasándole su config
                escala: se igualan a la referencia
   poses        {"parado": (fila, cuadro), ...}
   anims        {"nombre": {"fila", "titulo", "ms", "pausa", "anclaje"?, "mascota"?}}  mascota: True si la
-               mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "centro" (por defecto,
+               mascota ya aparece dentro de los cuadros (el tablero no dibuja otra al lado)  anclaje: "grande" (pie de atrás de la figura más grande, p. ej. la moto), "centro" (por defecto,
                centro del cuerpo) o "talon" (el pie de atrás queda fijo: para caídas hacia adelante)
   podio        {"gana", "otro", "ultimo"}
   por_columnas filas donde cada cuadro tiene varias figuras grandes (ej. Nico + el dino): los cuadros
                se separan por los espacios vacíos más anchos entre columnas
   transformar  función que recibe la imagen (uint8) y la devuelve cambiada (ej. tono de piel)
   mascota      (fila, cuadro, ruta): guarda ese cuadro como imagen de la mascota, en la misma escala
+  sin_tinte    True si el personaje no tiene nada magenta/rosa: los píxeles teñidos por el fondo
+               (rayos de las ruedas, bordes claros) pasan a gris
 """
 import os, json, numpy as np
 from PIL import Image
@@ -22,7 +24,7 @@ from scipy import ndimage as nd
 
 
 def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=(), alto=None, prev=None,
-             por_columnas=(), transformar=None, mascota=None):
+             por_columnas=(), transformar=None, mascota=None, sin_tinte=False):
     ALTO = alto or int(os.environ.get('ALTO', 104))
     a = np.array(Image.open(src).convert('RGB'))
     if transformar: a = transformar(a)
@@ -45,6 +47,14 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
             en = False
             if y - y0 > 40: franjas.append((y0, y))
     if en: franjas.append((y0, len(fg)))
+    # si dos filas se tocan (chispas de una que llegan a la otra), se corta la franja más alta
+    # por la línea con menos contenido de su parte central
+    cuenta = fg.sum(1)
+    while len(franjas) < len(filas):
+        i = max(range(len(franjas)), key=lambda i: franjas[i][1] - franjas[i][0])
+        y0, y1 = franjas[i]; h = y1 - y0
+        corte = y0 + int(h * .3) + int(np.argmin(cuenta[y0 + int(h * .3):y0 + int(h * .7)]))
+        franjas[i:i + 1] = [(y0, corte), (corte + 1, y1)]
     assert len(franjas) == len(filas), f'se esperaban {len(filas)} filas y hay {len(franjas)}: {franjas}'
 
     def cuadros_de(y0, y1, n):
@@ -103,7 +113,13 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
         kk = k * escala.get(fila, 1)
         ys, xs = np.where(mask)
         t, bt, l, rr = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
-        rgba = np.dstack([a[y0 + t:y0 + bt, l:rr].astype(np.uint8), (mask[t:bt, l:rr] * 255).astype(np.uint8)])
+        rgb = a[y0 + t:y0 + bt, l:rr].copy()
+        if sin_tinte:
+            R, G, B = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+            t_ = (R - G > 25) & (B - G > 25) & (np.abs(R - B) < 70)
+            gris = (R * .3 + G * .59 + B * .11)[t_]
+            rgb[t_] = np.stack([gris, gris, gris], -1)
+        rgba = np.dstack([rgb.astype(np.uint8), (mask[t:bt, l:rr] * 255).astype(np.uint8)])
         im = Image.fromarray(rgba, 'RGBA')
         im = im.convert('RGBa').resize((max(1, round(im.width * kk)), max(1, round(im.height * kk))), Image.LANCZOS).convert('RGBA')
         return im, l, kk
@@ -116,6 +132,11 @@ def procesar(src, out, filas, cuadros, referencia, poses, anims, podio, igualar=
             ys, xs = np.where(cuerpo)
             if anclaje == 'talon':
                 x = xs[ys >= ys.max() - (ys.max() - ys.min()) * .1].min()
+            elif anclaje == 'grande':      # rueda de atrás de la figura más grande (la moto), sin polvo ni rayitas
+                lb, kk2 = nd.label(cuerpo)
+                g = 1 + int(np.argmax(nd.sum(cuerpo, lb, range(1, kk2 + 1))))
+                gy, gx = np.where(lb == g)
+                x = gx[gy >= gy.max() - (gy.max() - gy.min()) * .1].min()
             else:
                 x = xs.mean()
             ims.append(im); anc.append((x - l) * kk)

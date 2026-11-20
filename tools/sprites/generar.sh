@@ -9,7 +9,6 @@ export ALTO=96          # alto en píxeles reales del personaje parado
 mkdir -p salida
 python andy.py hojas/andy.png salida/andy
 python dante.py hojas/dante.png salida/dante
-python dante_moto.py hojas/dante_moto.png salida/dante
 python fran.py  hojas/fran.png  salida/fran
 python nico.py  hojas/nico.png  salida/nico
 for p in andy dante fran; do python pixelize.py salida/$p; done

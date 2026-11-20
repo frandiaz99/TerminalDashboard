@@ -174,7 +174,7 @@
   function animDe(id, nombre) { const s = ANIMS.get(id); return s && nombre && s.anims[nombre] || null; }
   // poses que el personaje tiene de verdad (sin contar las que se reemplazan por "parado")
   function posesDe(nombre) { const id = spriteDe(nombre); return POSES.filter(p => META.has(id + "/" + p)); }
-  function animaciones(nombre) { const s = ANIMS.get(spriteDe(nombre)); return s ? Object.values(s.anims).map(a => ({ nombre: a.nombre, titulo: a.titulo })) : []; }
+  function animaciones(nombre) { const s = ANIMS.get(spriteDe(nombre)); return s ? Object.values(s.anims).map(a => ({ nombre: a.nombre, titulo: a.titulo, ancho: a.w / a.alto })) : []; }
 
   // Un solo reloj para todas las animaciones de la página: cambia el cuadro de cada
   // elemento con data-frames cuando le toca. En el último cuadro espera "pausa".
@@ -338,8 +338,8 @@
     { lugar: 3, x: 118, h: 24, lid: "#b0623a", lidL: "#d08a5a", lidD: "#7e4128", front: "#45291f", speck: "#523126", num: "#efdcc4", laurel: "#a85a36" },
     { lugar: 1, x: 62, h: 40, lid: "#e0a93a", lidL: "#f4cb62", lidD: "#a8762a", front: "#3a3024", speck: "#45392a", num: "#f4cb62", laurel: "#d9a23a", frame: "both" },
   ];
-  const GROUND = 112, BW = 56, ANCHO = 240, ALTO_PJ = 44;   // alto de un personaje parado, en píxeles del podio
-  const CUARTO = { x: 176, w: 60 };                          // 4.º lugar: en el piso, a la derecha del podio
+  const GROUND = 112, BW = 56, ANCHO = 290, ALTO_PJ = 44;   // alto de un personaje parado, en píxeles del podio
+  const CUARTO = { x: 178, w: 110 };                         // 4.º lugar: en el piso, a la derecha del podio (ancho: hay caídas largas)
 
   function rectsDe(map) {
     const byRow = new Map();
@@ -456,7 +456,7 @@
     }
     rect(0, GROUND, ANCHO - 1, GROUND, "#7d9a3e"); rect(0, GROUND + 1, ANCHO - 1, GROUND + 2, "#5d7a2e"); rect(0, GROUND + 3, ANCHO - 1, GROUND + 3, "#3f5222");
     const tuft = (x, h) => { for (let i = 0; i < h; i++) set(x, GROUND - 1 - i, i === h - 1 ? "#9ab84e" : "#6d8a34"); set(x + 2, GROUND - 1, "#6d8a34"); set(x + 2, GROUND - 2, "#9ab84e"); set(x - 1, GROUND - 1, "#6d8a34"); };
-    [[2, 3], [12, 2], [36, 3], [58, 4], [70, 2], [96, 3], [114, 4], [124, 2], [150, 3], [168, 3], [176, 2], [228, 3], [236, 2]].forEach(([x, h]) => tuft(x, h));
+    [[2, 3], [12, 2], [36, 3], [58, 4], [70, 2], [96, 3], [114, 4], [124, 2], [150, 3], [168, 3], [176, 2], [214, 3], [252, 2], [272, 3], [286, 2]].forEach(([x, h]) => tuft(x, h));
     const rock = x => { rect(x, GROUND - 2, x + 3, GROUND - 1, "#8a8680"); rect(x + 1, GROUND - 3, x + 2, GROUND - 3, "#a8a49e"); set(x, GROUND - 2, "#6e6a64"); };
     rock(16); rock(160);
     return `<svg class="podio-svg" viewBox="0 20 ${ANCHO} 97" role="img" aria-label="Podio del día"><g shape-rendering="crispEdges">${rectsDe(m)}</g>${chars.join("")}</svg>`;

@@ -1,27 +1,23 @@
-import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
-from sheet import Sheet
-BANDS = {
- 'final': (4, 790, 8, 198), 'poses': (802, 1532, 50, 198),
- 'caminata': (4, 486, 242, 372), 'corrida': (494, 1029, 242, 372), 'saltar': (1036, 1278, 242, 372), 'caer': (1285, 1532, 242, 372),
- 'interaccion': (4, 788, 412, 520), 'moto': (796, 1532, 412, 520),
- 'uso': (4, 988, 560, 684), 'trofeo': (996, 1532, 528, 684),
- 'idle': (1060, 1532, 722, 806),
- 'giros': (4, 330, 842, 926), 'sentarse': (340, 667, 842, 926), 'acostarse': (675, 1031, 842, 926), 'otros': (1039, 1532, 842, 926),
-}
-S = Sheet(sys.argv[1], BANDS, blank=[(1000, 525, 1436, 561)])
-if __name__ == '__main__':
-    for n in BANDS:
-        g = S.groups(n)
-        print(n, len(g), [(int(b['box'][0] + b['off'][0]), int(b['box'][2] - b['box'][0]), int(b['box'][3] - b['box'][1])) for b in g])
+"""Dante desde hojas/dante.png (fondo magenta, una animación por fila):
+  espera (4) · trofeo (7) · moto con caballito (8) · derrota con la moto (6) · dormido en el casco (4) · caminar (8)
 
-    from build import build
-    stand = dict(final=164, poses=109, caminata=101, corrida=100, saltar=100, caer=100, interaccion=89, moto=89, uso=107, trofeo=99, idle=76, giros=75, sentarse=88, acostarse=88, otros=75)
-    r = lambda b, n, s=0: [(b, i) for i in range(s, s + n)]
-    build(S, stand, sys.argv[2],
-        poses={'parado': ('final', 0), 'caminando': ('caminata', 2), 'festejo': ('poses', 5), 'sentado': ('sentarse', 1)},
-        anims={
-            'trofeo':  dict(titulo='levanta la copa', frames=r('trofeo', 6), ms=420, pausa=1400),
-        },
-        podio={'gana': 'trofeo', 'otro': 'moto'},
-        preview='salida/prev_dante.png')
+Uso:  python dante.py hojas/dante.png salida/dante
+"""
+import sys
+from magenta import procesar
+
+procesar(sys.argv[1], sys.argv[2],
+    filas=['espera', 'trofeo', 'moto', 'derrota', 'dormido', 'caminar'],
+    cuadros=[4, 7, 8, 6, 4, 8],
+    referencia=('espera', 0),
+    igualar=['trofeo', 'caminar'],
+    por_columnas=['moto', 'derrota'],
+    sin_tinte=True,
+    poses={'parado': ('espera', 0), 'caminando': ('caminar', 2), 'festejo': ('trofeo', 6), 'sentado': ('dormido', 0)},
+    anims={
+        'trofeo':  dict(fila='trofeo',  titulo='levanta la copa', ms=420, pausa=1400),
+        'moto':    dict(fila='moto',    titulo='anda en moto y hace un caballito', ms=160, pausa=1400, anclaje='grande'),
+        'derrota': dict(fila='derrota', titulo='se le pincha la rueda y sale volando', ms=380, pausa=2200, anclaje='grande'),
+    },
+    podio={'gana': 'trofeo', 'otro': 'moto', 'ultimo': 'derrota'},
+    prev='salida/prev_dante.png')

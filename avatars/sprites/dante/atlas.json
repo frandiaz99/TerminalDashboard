@@ -1,9 +1,10 @@
 {
   "imagen": "atlas.png",
-  "poses": {"parado": [589, 141, 42, 96], "caminando": [635, 141, 49, 95], "festejo": [508, 4, 76, 116], "sentado": [688, 141, 62, 74]},
-  "podio": {"gana": "trofeo", "otro": "moto"},
+  "poses": {"parado": [191, 115, 46, 96], "caminando": [139, 115, 48, 98], "festejo": [4, 4, 77, 107], "sentado": [864, 322, 72, 75]},
+  "podio": {"gana": "trofeo", "otro": "moto", "ultimo": "derrota"},
   "animaciones": {
-    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 80, "h": 133, "cuadros": [[4, 4], [88, 4], [172, 4], [256, 4], [340, 4], [424, 4]]},
-    "moto": {"titulo": "anda en moto y hace un caballito", "ms": 160, "pausa": 1400, "alto": 96, "w": 113, "h": 98, "cuadros": [[588, 4], [705, 4], [822, 4], [4, 141], [121, 141], [238, 141], [355, 141], [472, 141]]}
+    "trofeo": {"titulo": "levanta la copa", "ms": 420, "pausa": 1400, "alto": 96, "w": 131, "h": 107, "cuadros": [[85, 4], [220, 4], [355, 4], [490, 4], [625, 4], [760, 4], [4, 115]]},
+    "moto": {"titulo": "anda en moto y hace un caballito", "ms": 160, "pausa": 1400, "alto": 96, "w": 127, "h": 92, "cuadros": [[241, 115], [372, 115], [503, 115], [634, 115], [765, 115], [4, 226], [135, 226], [266, 226]]},
+    "derrota": {"titulo": "se le pincha la rueda y sale volando", "ms": 380, "pausa": 2200, "alto": 96, "w": 211, "h": 92, "cuadros": [[397, 226], [612, 226], [4, 322], [219, 322], [434, 322], [649, 322]]}
   }
 }
