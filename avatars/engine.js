@@ -43,17 +43,24 @@
   // ───────────────────────── medidas de cada imagen ─────────────────────────
   // Se leen al cargar: tamaño, dónde empieza la cabeza y su centro, y el tamaño de un "pixel"
   // del dibujo (u) para que los agregados queden en la misma escala que el personaje.
-  const META = new Map();          // "id/pose" → { w, h, top, cx, u, ok }
+  const META = new Map();          // "id/pose" → { w, h, top, cx, u, ok, ...cuadro }
 
-  function medir(img) {
-    const w = img.naturalWidth, h = img.naturalHeight;
-    // u: tamaño de un píxel del dibujo; con sprites en resolución real (≈48 px de alto) es 1
+  // Un "cuadro" es un rectángulo dentro de una imagen: { src, x, y, w, h, aw, ah } (aw × ah = tamaño de la
+  // imagen completa). Con atlas.png es la posición del cuadro en el atlas; con imágenes sueltas, x = y = 0.
+  function cuadro(img, r) {
+    const aw = img.naturalWidth, ah = img.naturalHeight;
+    return r ? { src: img.src, x: r[0], y: r[1], w: r[2], h: r[3], aw, ah } : { src: img.src, x: 0, y: 0, w: aw, h: ah, aw, ah };
+  }
+
+  function medir(img, c = cuadro(img)) {
+    const { w, h } = c;
+    // u: tamaño de un píxel del dibujo, para que la corona, las medallas, etc. queden en la misma escala
     const m = { w, h, top: 0, cx: w / 2, u: Math.max(1, Math.round(h / 43)), ok: false };
     try {
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      const g = c.getContext("2d");
-      g.drawImage(img, 0, 0);
+      const cv = document.createElement("canvas");
+      cv.width = w; cv.height = h;
+      const g = cv.getContext("2d");
+      g.drawImage(img, c.x, c.y, w, h, 0, 0, w, h);
       const d = g.getImageData(0, 0, w, h).data;
       // la cabeza empieza en la franja del medio, después del último hueco vacío de arriba:
       // así se saltean las rayitas de festejo (separadas por un hueco) y las manos levantadas
@@ -91,42 +98,75 @@
         img.src = PET_BASE + id + ".png" + V();
       }));
     }
-    for (const id of new Set(ids)) for (const pose of POSES) {
-      const key = id + "/" + pose;
-      if (META.has(key)) continue;
-      jobs.push(new Promise(res => {
-        const img = new Image();
-        img.onload = () => { META.set(key, { ...medir(img), src: img.src }); res(); };
-        img.onerror = () => { if (pose === "parado") console.warn(`[avatares] falta ${BASE}${id}/parado.png`); res(); };
-        img.src = BASE + id + "/" + pose + ".png" + V();
-      }));
-    }
     for (const id of new Set(ids)) {
       if (ANIMS.has(id)) continue;
       ANIMS.set(id, null);
-      jobs.push(fetch(BASE + id + "/animaciones.json" + V()).then(r => r.ok ? r.json() : null).catch(() => null).then(async man => {
-        if (!man || !man.animaciones) return;
-        const anims = {};
-        for (const [nombre, a] of Object.entries(man.animaciones)) {
-          const n = Math.max(1, Math.min(60, a.cuadros | 0));
-          const imgs = await Promise.all(Array.from({ length: n }, (_, i) => new Promise(res => {
-            const im = new Image();
-            im.onload = () => res(im); im.onerror = () => res(null);
-            im.src = `${BASE}${id}/${nombre}/${i + 1}.png${V()}`;
-          })));
-          if (!imgs[0]) { console.warn(`[avatares] falta ${BASE}${id}/${nombre}/1.png`); continue; }
-          const m = medir(imgs[0]);
-          anims[nombre] = {
-            nombre, titulo: a.titulo || nombre, cuadros: n, ms: a.ms || 300, pausa: a.pausa || a.ms || 300,
-            alto: a.alto || m.h, mascota: !!a.mascota, w: m.w, h: m.h, talon: m.talon || 0,
-            srcs: imgs.map(im => (im || imgs[0]).src), imgs,           // imgs: quedan en memoria para no parpadear
-          };
-        }
-        ANIMS.set(id, { podio: man.podio || {}, anims });
-      }));
+      // primero atlas.json (una sola imagen con todo); si no está, imágenes sueltas
+      jobs.push(fetch(BASE + id + "/atlas.json" + V()).then(r => r.ok ? r.json() : null).catch(() => null)
+        .then(at => at ? cargarAtlas(id, at) : cargarSueltas(id)));
     }
     return Promise.all(jobs);
   }
+
+  const imagen = src => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+
+  async function cargarAtlas(id, at) {
+    const img = await imagen(BASE + id + "/" + (at.imagen || "atlas.png") + V());
+    if (!img) { console.warn(`[avatares] falta ${BASE}${id}/atlas.png`); return; }
+    for (const [pose, r] of Object.entries(at.poses || {})) {
+      const c = cuadro(img, r);
+      META.set(id + "/" + pose, { ...medir(img, c), ...c });
+    }
+    const anims = {};
+    for (const [nombre, a] of Object.entries(at.animaciones || {})) {
+      const frames = (a.cuadros || []).map(([x, y]) => cuadro(img, [x, y, a.w, a.h]));
+      if (!frames.length) continue;
+      const m = medir(img, frames[0]);
+      anims[nombre] = {
+        nombre, titulo: a.titulo || nombre, cuadros: frames.length, ms: a.ms || 300, pausa: a.pausa || a.ms || 300,
+        alto: a.alto || m.h, mascota: !!a.mascota, w: a.w, h: a.h, talon: m.talon || 0, frames, img,
+      };
+    }
+    ANIMS.set(id, { podio: at.podio || {}, anims });
+  }
+
+  // Formato con imágenes sueltas: <pose>.png + animaciones.json + <animación>/1.png, 2.png…
+  async function cargarSueltas(id) {
+    await Promise.all(POSES.map(async pose => {
+      const img = await imagen(BASE + id + "/" + pose + ".png" + V());
+      if (img) META.set(id + "/" + pose, { ...medir(img), ...cuadro(img) });
+      else if (pose === "parado") console.warn(`[avatares] falta ${BASE}${id}/parado.png`);
+    }));
+    const man = await fetch(BASE + id + "/animaciones.json" + V()).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!man || !man.animaciones) return;
+    const anims = {};
+    for (const [nombre, a] of Object.entries(man.animaciones)) {
+      const n = Math.max(1, Math.min(60, a.cuadros | 0));
+      const imgs = await Promise.all(Array.from({ length: n }, (_, i) => imagen(`${BASE}${id}/${nombre}/${i + 1}.png${V()}`)));
+      if (!imgs[0]) { console.warn(`[avatares] falta ${BASE}${id}/${nombre}/1.png`); continue; }
+      const m = medir(imgs[0]);
+      anims[nombre] = {
+        nombre, titulo: a.titulo || nombre, cuadros: n, ms: a.ms || 300, pausa: a.pausa || a.ms || 300,
+        alto: a.alto || m.h, mascota: !!a.mascota, w: m.w, h: m.h, talon: m.talon || 0,
+        frames: imgs.map(im => cuadro(im || imgs[0])), imgs,           // imgs: quedan en memoria para no parpadear
+      };
+    }
+    ANIMS.set(id, { podio: man.podio || {}, anims });
+  }
+
+  // ───────────────────────── dibujar un cuadro ─────────────────────────
+  // En HTML: un <span> con la imagen de fondo recortada al cuadro, escalada por k.
+  function cuadroHTML(c, k, estilo = "", attrs = "") {
+    return `<span class="spr" style="width:${(c.w * k).toFixed(2)}px;height:${(c.h * k).toFixed(2)}px;background-image:url('${esc(c.src)}');` +
+      `background-size:${(c.aw * k).toFixed(2)}px ${(c.ah * k).toFixed(2)}px;background-position:${(-c.x * k).toFixed(2)}px ${(-c.y * k).toFixed(2)}px;${estilo}"${attrs}></span>`;
+  }
+  // En SVG: un <svg> cuyo viewBox es el cuadro, con la imagen completa adentro.
+  function cuadroSVG(c, x, y, w, h, attrs = "") {
+    return `<svg x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="${c.x} ${c.y} ${c.w} ${c.h}" preserveAspectRatio="none" overflow="hidden"${attrs}>` +
+      `<image href="${esc(c.src)}" width="${c.aw}" height="${c.ah}"/></svg>`;
+  }
+  // Atributos para que el reloj de animación cambie de cuadro: "src x y|src x y|…"
+  const framesAttr = (an, k) => ` data-frames="${esc(an.frames.map(f => `${f.src} ${f.x} ${f.y}`).join("|"))}" data-ms="${an.ms}" data-pausa="${an.pausa}"${k ? ` data-k="${k}"` : ""}`;
 
   // Animaciones: avatars/sprites/<id>/animaciones.json + una carpeta por animación con 1.png, 2.png…
   const ANIMS = new Map();         // id → { podio: { gana, otro }, anims: { nombre → {...} } }
@@ -146,7 +186,17 @@
         const i = (+(el.dataset.i || 0) + 1) % fr.length;
         el.dataset.i = i;
         el.dataset.t = now + (i === fr.length - 1 ? +el.dataset.pausa : +el.dataset.ms);
-        if (el.tagName.toLowerCase() === "image") el.setAttribute("href", fr[i]); else el.src = fr[i];
+        const [src, x, y] = fr[i].split(" ");
+        if (el.tagName.toLowerCase() === "svg") {            // podio: se mueve el viewBox sobre el atlas
+          const vb = el.viewBox.baseVal;
+          el.setAttribute("viewBox", `${x} ${y} ${vb.width} ${vb.height}`);
+          const im = el.firstElementChild;
+          if (im.getAttribute("href") !== src) im.setAttribute("href", src);
+        } else {                                               // HTML: se mueve el fondo del <span>
+          const k = +el.dataset.k;
+          el.style.backgroundPosition = `${(-x * k).toFixed(2)}px ${(-y * k).toFixed(2)}px`;
+          if (el.dataset.src !== src) { el.dataset.src = src; el.style.backgroundImage = `url('${src}')`; }
+        }
       }
     }, 40);
   }
@@ -232,15 +282,14 @@
     const alto = opts.alto || 48;
     const label = opts.titulo ? ` role="img" aria-label="${esc(opts.titulo)}"` : ' aria-hidden="true"';
     if (!mt) return `<span class="avt avt-${opts.recorte || "cuerpo"}" style="width:${alto}px;height:${alto}px"${label}></span>`;
-    const src = esc(mt.src);
     const fx = agregados(mt, estado, pose);
     if (opts.recorte === "busto") {
       // cuadrado alrededor de la cabeza, con lugar arriba para la corona
       const lado = Math.round((meta(id, "parado") || mt).h * .55);
       const k = alto / lado;
       const x0 = mt.cx - lado / 2, y0 = mt.top - 6 * mt.u;
-      const pos = `left:${(-x0 * k).toFixed(1)}px;top:${(-y0 * k).toFixed(1)}px;width:${(mt.w * k).toFixed(1)}px;height:${(mt.h * k).toFixed(1)}px`;
-      return `<span class="avt avt-busto" style="width:${alto}px;height:${alto}px"${label}><img src="${src}" alt="" style="${pos}"><svg viewBox="0 0 ${mt.w} ${mt.h}" style="${pos}" overflow="visible" shape-rendering="crispEdges">${fx}</svg></span>`;
+      const pos = `left:${(-x0 * k).toFixed(1)}px;top:${(-y0 * k).toFixed(1)}px;`;
+      return `<span class="avt avt-busto" style="width:${alto}px;height:${alto}px"${label}>${cuadroHTML(mt, k, pos)}<svg viewBox="0 0 ${mt.w} ${mt.h}" style="${pos}width:${(mt.w * k).toFixed(1)}px;height:${(mt.h * k).toFixed(1)}px" overflow="visible" shape-rendering="crispEdges">${fx}</svg></span>`;
     }
     // de cuerpo entero, "alto" es la altura del personaje parado: así todas las poses y
     // animaciones de un mismo personaje quedan en la misma escala
@@ -249,10 +298,10 @@
     let k, cw, ch, pj;
     if (an) {
       k = alto / an.alto; cw = an.w * k; ch = an.h * k;
-      pj = `<span class="avt-pj" style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px"><img src="${esc(an.srcs[0])}" alt="" data-frames="${esc(an.srcs.join("|"))}" data-ms="${an.ms}" data-pausa="${an.pausa}"></span>`;
+      pj = `<span class="avt-pj" style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px">${cuadroHTML(an.frames[0], k, "", framesAttr(an, k))}</span>`;
     } else {
       k = alto / (meta(id, "parado") || mt).h; cw = mt.w * k; ch = mt.h * k;
-      pj = `<span class="avt-pj" style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px"><img src="${src}" alt=""><svg viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible" shape-rendering="crispEdges">${fx}</svg></span>`;
+      pj = `<span class="avt-pj quieto" style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px">${cuadroHTML(mt, k)}<svg viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible" shape-rendering="crispEdges">${fx}</svg></span>`;
     }
     if (!pet || (an && an.mascota)) return `<span class="avt avt-cuerpo" style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px"${label}>${pj}</span>`;
     // la mascota va a los pies, a la derecha, en la misma escala que el personaje parado
@@ -335,7 +384,7 @@
         if (an) {
           const k = ALTO_PJ / an.alto, w = an.w * k, h = an.h * k;
           const x = b.x + BW / 2 - (an.talon + an.alto * .22) * k, y = top - h;
-          chars.push(`<image href="${esc(an.srcs[0])}" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" data-frames="${esc(an.srcs.join("|"))}" data-ms="${an.ms}" data-pausa="${an.pausa}"/>`);
+          chars.push(cuadroSVG(an.frames[0], x, y, w, h, framesAttr(an)));
           const pet = an.mascota ? null : mascotaDe(p.nombre);
           if (pet) {
             // detrás del personaje (mira a la derecha), así no tapa lo que tiene en las manos
@@ -346,7 +395,7 @@
         } else if (mt) {
           const k = ALTO_PJ / (base || mt).h;                 // misma escala para todas las poses del personaje
           const w = mt.w * k, h = mt.h * k, x = b.x + BW / 2 - mt.cx * k, y = top - h;
-          chars.push(`<svg x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible"><image href="${esc(mt.src)}" width="${mt.w}" height="${mt.h}"/><g shape-rendering="crispEdges">${agregados(mt, p.estado || {}, pose)}</g></svg>`);
+          chars.push(`<svg x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p.estado || {}, pose)}</g></svg>`);
           const pet = mascotaDe(p.nombre);
           if (pet) {
             const ph = Math.round(ALTO_PJ * PET_ALTO), pw = ph * pet.w / pet.h;
@@ -364,12 +413,12 @@
       const cx = CUARTO.x + CUARTO.w / 2, base = meta(id, "parado");
       if (an) {
         const k = ALTO_PJ / an.alto, w = an.w * k, h = an.h * k;
-        chars.push(`<image href="${esc(an.srcs[0])}" x="${(cx - w / 2).toFixed(2)}" y="${(GROUND - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" data-frames="${esc(an.srcs.join("|"))}" data-ms="${an.ms}" data-pausa="${an.pausa}"/>`);
+        chars.push(cuadroSVG(an.frames[0], cx - w / 2, GROUND - h, w, h, framesAttr(an)));
       } else {
         const mt = meta(id, "sentado");
         if (mt) {
           const k = ALTO_PJ / (base || mt).h, w = mt.w * k, h = mt.h * k, x = cx - mt.cx * k;
-          chars.push(`<svg x="${x.toFixed(2)}" y="${(GROUND - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible"><image href="${esc(mt.src)}" width="${mt.w}" height="${mt.h}"/><g shape-rendering="crispEdges">${agregados(mt, p4.estado || {}, "sentado")}</g></svg>`);
+          chars.push(`<svg x="${x.toFixed(2)}" y="${(GROUND - h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" viewBox="0 0 ${mt.w} ${mt.h}" overflow="visible">${cuadroSVG(mt, 0, 0, mt.w, mt.h)}<g shape-rendering="crispEdges">${agregados(mt, p4.estado || {}, "sentado")}</g></svg>`);
         }
       }
     }

@@ -24,6 +24,10 @@
 //  personaje parado dentro de esos cuadros (para que quede en la misma escala que el resto).
 //  Todas aparecen en tu perfil (perfil.html?n=TuNombre).
 //
+//  Atlas (recomendado): en vez de imágenes sueltas, la carpeta puede tener solo atlas.png (todas las
+//  poses y cuadros en una imagen) y atlas.json (dónde está cada uno). Carga más rápido y no parpadea.
+//  Se arma desde la carpeta con imágenes sueltas con:  python tools/sprites/empaquetar.py <carpeta> <salida>
+//
 //  Mascota (opcional): una imagen PNG chica en avatars/mascotas/<id>.png, con fondo
 //  transparente y mirando a la derecha. Se agrega en MASCOTAS, más abajo, y aparece
 //  a los pies del personaje.
@@ -33,7 +37,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Cambiá este número cada vez que actualices imágenes, así todos ven las nuevas sin limpiar la caché.
-window.AVATARES_VERSION = "6";
+window.AVATARES_VERSION = "7";
 
 // Carpetas disponibles. Los jugadores que no figuran en AVATARES reciben una de estas,
 // siempre la misma para el mismo nombre.
